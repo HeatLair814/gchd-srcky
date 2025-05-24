@@ -1,2 +1,0 @@
-# racer
-![obrázek](silnice.jpg)
