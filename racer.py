@@ -17,7 +17,7 @@ max_speed = 130
 class Player(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__()
-        self.image = pygame.image.load("zezadu1.png")
+        self.image = pygame.image.load("zezadu1.png").convert_alpha()
         self.rect = self.image.get_rect()
         self.rect.x = (1920-self.image.get_width())/2
         self.rect.y = 800
@@ -26,12 +26,12 @@ class Player(pygame.sprite.Sprite):
         keys = pygame.key.get_pressed()
         if keys[pygame.K_a] and self.rect.x >= 400:
             self.rect.x += -handling
-            self.image = pygame.image.load("zleva.png")
+            self.image = pygame.image.load("zleva.png").convert_alpha()
         elif keys[pygame.K_d] and self.rect.x <= 1320:
             self.rect.x += handling
-            self.image = pygame.image.load("zprava.png")
+            self.image = pygame.image.load("zprava.png").convert_alpha()
         else:
-            self.image = pygame.image.load("zezadu1.png")
+            self.image = pygame.image.load("zezadu1.png").convert_alpha()
     def update(self):
         self.player_input()
     
@@ -40,18 +40,20 @@ class Player(pygame.sprite.Sprite):
 
 
 class Car(pygame.sprite.Sprite):
-    def __init__(self, image, road_y, lane_x):
+    def __init__(self, image, road_y, lane_x, rychlost):
         super().__init__()
+        self.rychlost = rychlost
         self.original_image = image
         self.road_y = road_y  
         self.lane_x = lane_x 
         self.update()
         self.image = image
         self.rect = self.image.get_rect()
+        
 
     def update(self):
         scale = (self.road_y + 376) / 1300
-        self.road_y += 5 * scale
+        self.road_y += self.rychlost * scale
         new_width = int(self.original_image.get_width() * scale)
         new_height = int(self.original_image.get_height() * scale)
         self.image = pygame.transform.scale(self.original_image, (new_width, new_height))
@@ -59,7 +61,7 @@ class Car(pygame.sprite.Sprite):
         
         lane_width = 76 + (300 - 76) * (self.road_y / 1080)
         if self.lane_x in (1,2):
-            koeficient_debilnosti = 1.2
+            koeficient_debilnosti = 1.2 #idk co to je, jenom aby to vypadalo, že to jede v jednom pruhu
         else: koeficient_debilnosti = 1.07
 
         offset_from_center = ((self.lane_x - 1.5) * lane_width)*koeficient_debilnosti
@@ -81,7 +83,7 @@ class Car(pygame.sprite.Sprite):
 
 screen = pygame.display.set_mode((1920,1080))
 clock = pygame.time.Clock()
-road_image = pygame.image.load("silnice1.jpg")
+road_image = pygame.image.load("silnice1.jpg").convert_alpha()
 road_x = (1920 - road_image.get_width())/2
 road_y = 1080-road_image.get_height()
 distance = 0                                                    #distance = car_x
@@ -93,6 +95,7 @@ player.add(Player())
 car_image = pygame.image.load("prius.png").convert_alpha()
 cars = pygame.sprite.Group()
 
+font = pygame.font.SysFont("Arial", 50)
 
 
 
@@ -106,7 +109,7 @@ while True:
 
         if event.type == SPAWN_OBSTACLE:
             lane = random.randint(0, 3) 
-            car = Car(car_image, road_y=-200, lane_x=lane)
+            car = Car(car_image, road_y=-200, lane_x=lane, rychlost = random.randrange(1,4))
             cars.add(car)
 
 
@@ -117,7 +120,7 @@ while True:
 
 
     distance += 10
-    for i in range(1081):
+    for i in range(1081): #scalování silnice
         scale = (1456-i)/1080
         x = distance + i/scale
         road_slice = road_image.subsurface((0, (x)%360,1000, 1))
@@ -127,8 +130,14 @@ while True:
     cars.update()
     cars.draw(screen)
     
+    
 
     player.draw(screen)
     player.update()
+
+    fps = round(clock.get_fps())
+    text_surface = font.render(f"FPS: {fps}", True, "white")
+    screen.blit(text_surface, (100,100))
+
     pygame.display.update()
     clock.tick(74)
