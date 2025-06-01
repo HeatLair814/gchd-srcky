@@ -1,39 +1,52 @@
 import pygame
 pygame.init()
 import random
+import math
 
 SPAWN_OBSTACLE = pygame.USEREVENT + 1
 frekvence = [600,4000]
 pygame.time.set_timer(SPAWN_OBSTACLE, random.randint(frekvence[0],frekvence[1]))
 
 
-handling = 20
-acceleration = 10
-min_speed = 30
-max_speed = 130
+handling = 3      
+zrychleni = 0.5
+max_speed = 200  
 
 
 
-class Player(pygame.sprite.Sprite):
+class Player():
     def __init__(self):
         super().__init__()
-        self.image = pygame.image.load("zezadu1.png")
+        self.image = pygame.image.load("img/zezadu.png")
         self.rect = self.image.get_rect()
-        self.rect.x = (1920-self.image.get_width())/2
-        self.rect.y = 800
+        self.x = (1920-self.image.get_width())/2
+        self.y = 0
+        self.angle = 0
+        self.velocity = 0
+        self.acceleration = 0
 
-    def player_input(self):
+    def controls(self,delta):
         keys = pygame.key.get_pressed()
-        if keys[pygame.K_a] and self.rect.x >= 400:
-            self.rect.x += -handling
-            self.image = pygame.image.load("zleva.png")
-        elif keys[pygame.K_d] and self.rect.x <= 1320:
-            self.rect.x += handling
-            self.image = pygame.image.load("zprava.png")
-        else:
-            self.image = pygame.image.load("zezadu1.png")
-    def update(self):
-        self.player_input()
+        self.velocity += -0.01*self.velocity*delta
+
+
+        if keys[pygame.K_w] or keys[pygame.K_UP]:
+            self.velocity += zrychleni
+
+        elif keys[pygame.K_s] or keys[pygame.K_DOWN]:
+            self.velocity -= handling/2
+
+        if keys[pygame.K_a] or keys[pygame.K_LEFT]:
+            self.angle -= delta * handling/self.velocity*30
+        elif keys[pygame.K_d] or keys[pygame.K_RIGHT]:
+            self.angle += delta * handling/self.velocity*30
+        
+        self.velocity = max(20,min(self.velocity,max_speed))
+        self.angle = max(-2,(min(1,self.angle)))
+        self.velocity += self.acceleration*delta
+        self.x += self.velocity*delta*math.cos(self.angle)
+        self.y += self.velocity*math.sin(self.angle)*delta*100
+    
     
 
 
@@ -81,23 +94,24 @@ class Car(pygame.sprite.Sprite):
 
 screen = pygame.display.set_mode((1920,1080))
 clock = pygame.time.Clock()
-road_image = pygame.image.load("silnice1.jpg")
+road_image = pygame.image.load("img/silnice.jpg")
 road_x = (1920 - road_image.get_width())/2
 road_y = 1080-road_image.get_height()
 distance = 0                                                    #distance = car_x
 
 
-player = pygame.sprite.GroupSingle()
-player.add(Player())
+player = Player()
 
-car_image = pygame.image.load("prius.png").convert_alpha()
+car_image = pygame.image.load("img/prius.png").convert_alpha()
 cars = pygame.sprite.Group()
 
 
-
-
-
+road_offset = 0
+horizontal_offset = player.angle * 500  
+car_line = player.image.get_height()
+clock.tick(); pygame.time.wait(16)
 while True:
+    delta = clock.tick(74)/1000
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
@@ -113,22 +127,34 @@ while True:
 
 
     screen.fill((0,255,0))
-
+    player.controls(delta)
 
 
     distance += 10
-    for i in range(1081):
-        scale = (1456-i)/1080
-        x = distance + i/scale
-        road_slice = road_image.subsurface((0, (x)%360,1000, 1))
+    road_offset += player.velocity * delta * 100  # 100 is a tuning factor
+    car_line = 1080 - 800 - player.image.get_height()//2
+
+    for i in range(1080):
+        scale = (1081-i)/500
+
+        x = road_offset + i/scale
+        y = 200*math.sin(x/1170) + 170*math.sin(x/500) - player.y
+        
+    
+       
+        tilt_strength = player.angle * (i / 1080)*900
+        horizontal = 960 - (500 - y) * scale - tilt_strength
+        road_slice = road_image.subsurface((0, (x)%1456,1000, 1))
         scaled_slice = pygame.transform.scale(road_slice, (1000*scale, 1))
-        screen.blit(scaled_slice,(960-500*scale,1080-i))
+        screen.blit(scaled_slice,(horizontal,1080-i))
+        
+        
+
 
     cars.update()
     cars.draw(screen)
-    
+    print("rychlost: ",player.velocity,"zrychleni: ", player.acceleration, "x: ",player.x, "y: ",player.y)
 
-    player.draw(screen)
-    player.update()
+    screen.blit(player.image, (960-player.image.get_width()/2,800))
     pygame.display.update()
     clock.tick(74)
