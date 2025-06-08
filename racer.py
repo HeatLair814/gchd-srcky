@@ -71,7 +71,7 @@ class Car(pygame.sprite.Sprite):
 
 
     def update(self,scale):
-        self.road_y -= 10#(self.rychlost)/200*player.velocity/10000
+        self.road_y -= player.velocity * delta * 10
         
         screen_y = int(self.road_y)
         if  0 <= screen_y < len(road_points):
@@ -93,7 +93,7 @@ class Car(pygame.sprite.Sprite):
                 new_height = self.original_image.get_height()
                 self.image = self.original_image
 
-            self.rect = pygame.Rect(screen_x - new_width // 2, road_y, new_width, new_height)
+            self.rect = pygame.Rect(screen_x - new_width // 2, road_y - new_height, new_width, new_height)
 
         else:
             self.kill()
@@ -110,24 +110,35 @@ class Object(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__()
         self.image = pygame.image.load("img/palma.png").convert_alpha()
-        self.velikost = random.uniform(0.05,0.5)
-        self.image = pygame.transform.scale(self.image, (self.image.get_width()*self.velikost , self.image.get_height()*self.velikost))
+        self.velikost = random.uniform(0.05, 0.5)
+        self.image = pygame.transform.scale(
+            self.image,
+            (int(self.image.get_width() * self.velikost), int(self.image.get_height() * self.velikost))
+        )
         self.rect = self.image.get_rect()
-        self.x = random.randint(0,1920)
-        self.y = 0
-        self.road_y = road_y
-    def update(self,scale):
-        self.road_y = road_points[0]
-        self.x += 5
-        self.y += 5
-        self.rect = pygame.Rect(self.x,self.y,self.image.get_width(),self.image.get_height())
+        self.road_y = random.randint(road_offset + 1200, road_offset + 4000)  # náhodně dál po silnici
+        self.side = random.choice([-1, 1])
+        self.offset = random.uniform(1.2, 2.0)
 
-
-
-
-
-
-
+    def update(self, road_points):
+        screen_y = -int(1080 - (self.road_y - road_offset))
+        if 0 <= screen_y < len(road_points):
+            road_center = road_points[screen_y][1]
+            scale = road_points[screen_y][2]
+            obj_x = road_center - self.side * 500 * scale * self.offset
+            obj_img_scaled = pygame.transform.scale(
+                self.image,
+                (int(self.image.get_width() * scale), int(self.image.get_height() * scale))
+            )
+            self.rect = pygame.Rect(
+                obj_x - obj_img_scaled.get_width() // 2,
+                screen_y - obj_img_scaled.get_height(),
+                obj_img_scaled.get_width(),
+                obj_img_scaled.get_height()
+            )
+            # vykreslení přesuneme do hlavního cyklu
+        else:
+            self.kill()
                              
 #sracky pred loopem
 screen = pygame.display.set_mode((1920,1080))
@@ -242,7 +253,7 @@ while True:
         
 
     for tree_y, side, offset in tree_positions:
-        screen_y =- int(1080-(tree_y - road_offset))  # project to screen
+        screen_y = -int(1080 - (tree_y - road_offset))  # project to screen
 
         if 0 <= screen_y < len(road_points):
             road_center = road_points[screen_y][1]
@@ -255,14 +266,17 @@ while True:
             )
 
             screen.blit(tree_img_scaled, (tree_x - tree_img_scaled.get_width() // 2, screen_y - tree_img_scaled.get_height()))
-
-
+        # else:  # volitelně můžeš odstranit palmu ze seznamu, pokud už je mimo obrazovku
+        #     tree_positions.remove((tree_y, side, offset))
 
     cars.update(scale)
     cars.draw(screen)
 
-    #objects.draw(screen)
-    #objects.update()
+    #vykreslení palem
+    for obj in objects:
+        obj.update(road_points)
+        if obj.alive():
+            screen.blit(obj.image, obj.rect)
 
     screen.blit(player.image, (960-player.image.get_width()/2,800))
     pygame.display.update()
