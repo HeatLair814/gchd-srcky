@@ -3,18 +3,19 @@ pygame.init()
 import random
 import math
 
+frame_rate = 74
 handling = 3      
 zrychleni = 0.5
 max_speed = 200  
 frekvence_aut = [600,4000] #frekvence spawnování aut
-frekvence_objektu = [100,500]
+#frekvence_objektu = [100,500]
 
 
 
 
 SPAWN_OBJECT = SPAWN_CAR = pygame.USEREVENT + 1
 pygame.time.set_timer(SPAWN_CAR, random.randint(frekvence_aut[0],frekvence_aut[1]))
-pygame.time.set_timer(SPAWN_OBJECT, random.randint(frekvence_objektu[0],frekvence_objektu[1]))
+#pygame.time.set_timer(SPAWN_OBJECT, random.randint(frekvence_objektu[0],frekvence_objektu[1]))
 
 
 
@@ -84,7 +85,7 @@ class Car(pygame.sprite.Sprite):
             offset = lane_positions.get(self.lane, 0) * lane_width
             screen_x = road_center_x + offset
 
-            if screen_y > car_line+player.image.get_height()//2:
+            if scale<(1/0.6):#car_line+player.image.get_height()//2
                 new_width = int(self.original_image.get_width() * scale*0.6)
                 new_height = int(self.original_image.get_height() * scale*0.6)
                 self.image = pygame.transform.scale(self.original_image, (new_width, new_height))
@@ -107,47 +108,24 @@ class Car(pygame.sprite.Sprite):
 
 
 class Object(pygame.sprite.Sprite):
-    def __init__(self):
-        super().__init__()
-        self.image = pygame.image.load("img/palma.png").convert_alpha()
-        self.velikost = random.uniform(0.05, 0.5)
-        self.image = pygame.transform.scale(
-            self.image,
-            (int(self.image.get_width() * self.velikost), int(self.image.get_height() * self.velikost))
-        )
-        self.rect = self.image.get_rect()
-        self.road_y = random.randint(road_offset + 1200, road_offset + 4000)  # náhodně dál po silnici
-        self.side = random.choice([-1, 1])
-        self.offset = random.uniform(1.2, 2.0)
-
-    def update(self, road_points):
-        screen_y = -int(1080 - (self.road_y - road_offset))
-        if 0 <= screen_y < len(road_points):
-            road_center = road_points[screen_y][1]
-            scale = road_points[screen_y][2]
-            obj_x = road_center - self.side * 500 * scale * self.offset
-            obj_img_scaled = pygame.transform.scale(
-                self.image,
-                (int(self.image.get_width() * scale), int(self.image.get_height() * scale))
-            )
-            self.rect = pygame.Rect(
-                obj_x - obj_img_scaled.get_width() // 2,
-                screen_y - obj_img_scaled.get_height(),
-                obj_img_scaled.get_width(),
-                obj_img_scaled.get_height()
-            )
-            # vykreslení přesuneme do hlavního cyklu
-        else:
-            self.kill()
+    pass
                              
+
+
+
+
+
+
+
+
+
+
 #sracky pred loopem
 screen = pygame.display.set_mode((1920,1080))
 player = Player()
 car_image = pygame.image.load("img/prius.png").convert_alpha()
 cars = pygame.sprite.Group()
 objects = pygame.sprite.Group()
-
-
 
 clock = pygame.time.Clock()
 road_image = pygame.image.load("img/silnice.jpg")
@@ -161,6 +139,10 @@ car_line = player.image.get_height()
 clock.tick(); pygame.time.wait(16)
 
 
+hud_barva = (20,20,20)
+logo_image = pygame.image.load("img/porsche_logo.png")
+honk_text = pygame.font.Font("fonts/SamsungSans-Thin.ttf",30).render("[SHIFT] to honk",True,(255,255,255))
+total_distance = 0
 
 
 
@@ -189,16 +171,10 @@ lane = random.choice([0, 1, 2, 3])
 car = Car(car_image, road_y=1080, lane = lane,rychlost_bileho_auta = random.randint(1,10))
 cars.add(car)
 
-tree_positions = []
-for i in range(2000, 100000, 800):  # tree every 800 pixels of distance
-    side = random.choice([-1, 1])  # left or right
-    offset = random.uniform(1.2, 2.0)  # how far from center
-    tree_positions.append((i, side, offset))
-
-tree_image = pygame.image.load("img/palma.png")
-
 
 while True:
+    elapsed_distance = player.velocity*1/frame_rate*2.5/1000
+    total_distance += elapsed_distance
     delta = clock.tick(74)/1000
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -214,7 +190,7 @@ while True:
         if event.type == SPAWN_OBJECT:
             object = Object()
             objects.add(object)
-            pygame.time.set_timer(SPAWN_OBJECT, random.randint(frekvence_objektu[0],frekvence_objektu[1]))
+            #pygame.time.set_timer(SPAWN_OBJECT, random.randint(frekvence_objektu[0],frekvence_objektu[1]))
 
 
 
@@ -230,7 +206,7 @@ while True:
     #render silnice
     distance += 10
     road_offset += player.velocity * delta * 100
-    car_line = 1080 - 800 - player.image.get_height()//2
+    car_line = 1080 - 600 - player.image.get_height()//2
     road_points = []
     for i in range(1080):
         scale = (1100-i)/500
@@ -243,7 +219,7 @@ while True:
         
 
         tilt_strength = player.angle * (i / 1080)*900
-        horizontal = 960 - (500 - y) * scale - tilt_strength
+        horizontal = 960 - (500 - y) * scale - tilt_strength + player.angle*(car_line-player.image.get_height())
         road_slice = road_image.subsurface((0, (x)%1456,1000, 1))
         scaled_slice = pygame.transform.scale(road_slice, (1000*scale, 1))
         screen.blit(scaled_slice,(horizontal,1080-i))
@@ -252,32 +228,24 @@ while True:
         
         
 
-    for tree_y, side, offset in tree_positions:
-        screen_y = -int(1080 - (tree_y - road_offset))  # project to screen
-
-        if 0 <= screen_y < len(road_points):
-            road_center = road_points[screen_y][1]
-            scale = road_points[screen_y][2]
-
-            tree_x = road_center - side * 500 * scale * offset
-            tree_img_scaled = pygame.transform.scale(
-                tree_image,
-                (int(tree_image.get_width() * scale), int(tree_image.get_height() * scale))
-            )
-
-            screen.blit(tree_img_scaled, (tree_x - tree_img_scaled.get_width() // 2, screen_y - tree_img_scaled.get_height()))
-        # else:  # volitelně můžeš odstranit palmu ze seznamu, pokud už je mimo obrazovku
-        #     tree_positions.remove((tree_y, side, offset))
-
     cars.update(scale)
     cars.draw(screen)
 
-    #vykreslení palem
-    for obj in objects:
-        obj.update(road_points)
-        if obj.alive():
-            screen.blit(obj.image, obj.rect)
 
-    screen.blit(player.image, (960-player.image.get_width()/2,800))
+    screen.blit(player.image, (960-player.image.get_width()/2,600))
+
+    pygame.draw.circle(screen,hud_barva,(200,1080),200)
+    pygame.draw.rect(screen,hud_barva,(200,880,1520,200))
+    pygame.draw.circle(screen,hud_barva,(1720,1080),200)
+
+
+    screen.blit(logo_image,(960-logo_image.get_width()//2,890))
+    screen.blit(honk_text,honk_text.get_rect(center=(960,1030)))
+    rychlost_text = pygame.font.Font("fonts/SamsungSans-Bold.ttf",100).render(f"{round(player.velocity*2.5,1)} km/h",True,(255,255,255))
+    screen.blit(rychlost_text,(200,930))
+    distance_text = pygame.font.Font("fonts/SamsungSans-Regular.ttf",50).render(f"Distance: {round(total_distance,2)} km",True,(255,255,255)) #player.velocity*25/36*elapsed_time/1000
+    screen.blit(distance_text,(1220,900))
+
+    
     pygame.display.update()
-    clock.tick(74)
+    clock.tick(frame_rate)
