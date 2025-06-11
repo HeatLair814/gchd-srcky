@@ -4,7 +4,7 @@ import random
 import math
 
 
-auto = "bugatti"
+auto = "porsche"
 frame_rate = 74
 handling = 3      
 zrychleni = 1
@@ -62,8 +62,9 @@ class Player():
 
 
 class Car(pygame.sprite.Sprite):
-    def __init__(self, image, road_y, lane,rychlost_bileho_auta):
+    def __init__(self, road_y, lane,rychlost_bileho_auta):
         super().__init__()
+        image = pygame.image.load(random.choice(["img/prius.png","img/tesla.png","img/transporter.png"])).convert_alpha()
         self.original_image = image
         self.road_y = road_y
         self.lane = lane
@@ -152,7 +153,7 @@ if auto == "aston":
 elif auto == "mcqueen":
     song_name = "Real Gone - Sheryl Crow"
 else:
-    song_name = random.choice(["Arab Money - Busta Rhymes","Satisfya - Imran Khan","WZH - kyeeskii","Free Bird - Lynyrd Skynyrd"])
+    song_name = random.choice(["Arab Money - Busta Rhymes","Satisfya - Imran Khan","WZH - kyeeskii","Free Bird - Lynyrd Skynyrd","No Limit - 2 UNLIMITED","7 5 0 - Malik Montana"])
 music = pygame.mixer.Sound(f"songs/{song_name}.mp3")
 music_text = pygame.font.Font("fonts/SamsungSans-Regular.ttf",30).render(f"Now playing: {song_name}",True,(150,150,150))
 honk_sound = pygame.mixer.Sound("songs/honk.mp3")
@@ -182,7 +183,7 @@ honk_channel = None
 
 #prvni auto na testovani
 lane = random.choice([0, 1, 2, 3])
-car = Car(car_image, road_y=1080, lane = lane,rychlost_bileho_auta = random.randint(1,10))
+car = Car(road_y=1080, lane = lane,rychlost_bileho_auta = random.randint(1,10))
 cars.add(car)
 
 music.play(-1)
@@ -199,7 +200,7 @@ while True:
         #spawnování
         if event.type == SPAWN_CAR:
             lane = random.choice([0, 1, 2, 3])
-            car = Car(car_image, road_y=1080, lane=lane,rychlost_bileho_auta = random.randint(1,10))
+            car = Car(road_y=1080, lane=lane,rychlost_bileho_auta = random.randint(1,10))
             cars.add(car)
             pygame.time.set_timer(SPAWN_CAR, random.randint(frekvence_aut[0], frekvence_aut[1]))
         if event.type == SPAWN_OBJECT:
