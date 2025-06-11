@@ -3,10 +3,12 @@ pygame.init()
 import random
 import math
 
+
+auto = "bugatti"
 frame_rate = 74
 handling = 3      
-zrychleni = 0.5
-max_speed = 200  
+zrychleni = 1
+max_speed = 2000
 frekvence_aut = [600,4000] #frekvence spawnování aut
 #frekvence_objektu = [100,500]
 
@@ -22,7 +24,7 @@ pygame.time.set_timer(SPAWN_CAR, random.randint(frekvence_aut[0],frekvence_aut[1
 class Player():
     def __init__(self):
         super().__init__()
-        self.image = pygame.image.load("img/zezadu.png")
+        self.image = pygame.image.load(f"img/{auto}.png")
         self.rect = self.image.get_rect()
         self.x = (1920-self.image.get_width())/2
         self.y = 0
@@ -140,9 +142,21 @@ clock.tick(); pygame.time.wait(16)
 
 
 hud_barva = (20,20,20)
-logo_image = pygame.image.load("img/porsche_logo.png")
-honk_text = pygame.font.Font("fonts/SamsungSans-Thin.ttf",30).render("[SHIFT] to honk",True,(255,255,255))
+text_barva = (255,255,255)
+logo_image = pygame.image.load(f"img/{auto}_logo.png")
+honk_text = pygame.font.Font("fonts/SamsungSans-Thin.ttf",30).render("[SHIFT] to honk",True,text_barva)
 total_distance = 0
+
+if auto == "aston":
+    song_name = "James Bond Theme - Moby remix"
+elif auto == "mcqueen":
+    song_name = "Real Gone - Sheryl Crow"
+else:
+    song_name = random.choice(["Arab Money - Busta Rhymes","Satisfya - Imran Khan","WZH - kyeeskii","Free Bird - Lynyrd Skynyrd"])
+music = pygame.mixer.Sound(f"songs/{song_name}.mp3")
+music_text = pygame.font.Font("fonts/SamsungSans-Regular.ttf",30).render(f"Now playing: {song_name}",True,(150,150,150))
+honk_sound = pygame.mixer.Sound("songs/honk.mp3")
+honk_channel = None
 
 
 
@@ -171,8 +185,9 @@ lane = random.choice([0, 1, 2, 3])
 car = Car(car_image, road_y=1080, lane = lane,rychlost_bileho_auta = random.randint(1,10))
 cars.add(car)
 
-
+music.play(-1)
 while True:
+    
     elapsed_distance = player.velocity*1/frame_rate*2.5/1000
     total_distance += elapsed_distance
     delta = clock.tick(74)/1000
@@ -219,7 +234,7 @@ while True:
         
 
         tilt_strength = player.angle * (i / 1080)*900
-        horizontal = 960 - (500 - y) * scale - tilt_strength + player.angle*(car_line-player.image.get_height())
+        horizontal = 960 - (500 - y) * scale - tilt_strength + player.angle*300                         #otáčení silnice kolem auta
         road_slice = road_image.subsurface((0, (x)%1456,1000, 1))
         scaled_slice = pygame.transform.scale(road_slice, (1000*scale, 1))
         screen.blit(scaled_slice,(horizontal,1080-i))
@@ -234,18 +249,22 @@ while True:
 
     screen.blit(player.image, (960-player.image.get_width()/2,600))
 
-    pygame.draw.circle(screen,hud_barva,(200,1080),200)
-    pygame.draw.rect(screen,hud_barva,(200,880,1520,200))
-    pygame.draw.circle(screen,hud_barva,(1720,1080),200)
-
-
+    #hud
+    pygame.draw.rect(screen,hud_barva,(0,880,1920,400),border_radius=200)
     screen.blit(logo_image,(960-logo_image.get_width()//2,890))
     screen.blit(honk_text,honk_text.get_rect(center=(960,1030)))
-    rychlost_text = pygame.font.Font("fonts/SamsungSans-Bold.ttf",100).render(f"{round(player.velocity*2.5,1)} km/h",True,(255,255,255))
+    rychlost_text = pygame.font.Font("fonts/SamsungSans-Bold.ttf",100).render(f"{round(player.velocity*2.5)} km/h",True,text_barva)
     screen.blit(rychlost_text,(200,930))
-    distance_text = pygame.font.Font("fonts/SamsungSans-Regular.ttf",50).render(f"Distance: {round(total_distance,2)} km",True,(255,255,255)) #player.velocity*25/36*elapsed_time/1000
+    distance_text = pygame.font.Font("fonts/SamsungSans-Regular.ttf",50).render(f"Distance: {round(total_distance,2)} km",True,text_barva)
     screen.blit(distance_text,(1220,900))
+    screen.blit(music_text,(1220,1000))
 
-    
+    if pygame.key.get_pressed()[pygame.K_LSHIFT]:
+        if honk_channel is None or not honk_channel.get_busy():
+            honk_channel = honk_sound.play(-1)  # Loop indefinitely
+    else:
+        if honk_channel and honk_channel.get_busy():
+            honk_channel.stop()
+
     pygame.display.update()
     clock.tick(frame_rate)
