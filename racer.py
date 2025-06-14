@@ -353,7 +353,7 @@ while loading:
         pygame.draw.rect(screen, (0, 0, 0), (100, 900, 1720, 100))
         pygame.draw.rect(screen, (29, 205, 159), (110, 910, loading_bar_width, 80))
         screen.blit(pygame.font.Font("fonts/SamsungSans-Bold.ttf",70).render(game_name,True,(0,0,0)),(115,915))
-        loading_bar_width += 100
+        loading_bar_width += 10
     else:
         pygame.time.wait(1000)
         loading = False
