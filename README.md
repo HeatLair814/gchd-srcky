@@ -1,3 +1,3 @@
-Spaghetti code 🍝
-Write auto=mercedes for +speed
+Spaghetti code 🍝 <br>
+Write auto=mercedes for +speed <br>
 Made using pygame
