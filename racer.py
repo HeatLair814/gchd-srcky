@@ -20,17 +20,17 @@ SPAWN_OBJECT = SPAWN_CAR = pygame.USEREVENT + 1
 pygame.time.set_timer(SPAWN_CAR, random.randint(frekvence_aut[0],frekvence_aut[1]))
 
 
-class Player():
+class Player(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__()
         self.image = pygame.image.load(f"img/{auto}.png")
         self.rect = self.image.get_rect()
-        self.mask = pygame.mask.from_surface(self.image)
         self.x = (1920-self.image.get_width())/2
         self.y = 0
         self.angle = 0
         self.velocity = 0
         self.acceleration = 0
+        self.rect.topleft = (960 - self.image.get_width() // 2, 600)
 
     def controls(self,delta):
         keys = pygame.key.get_pressed()
@@ -53,7 +53,6 @@ class Player():
         self.velocity += self.acceleration*delta
         self.x += self.velocity*delta*math.cos(self.angle)
         self.y += self.velocity*math.sin(self.angle)*delta*100
-
 
 class Car(pygame.sprite.Sprite):
     def __init__(self, road_y, lane,rychlost_bileho_auta):
@@ -323,8 +322,8 @@ def game():
 
 
 
-
-        if pygame.sprite.spritecollide(player,cars,False,pygame.sprite.collide_mask) or svodidla:
+    
+        if pygame.sprite.spritecollideany(player, cars) or svodidla:
             screen.blit(explosion_image,(960-explosion_image.get_width()//2,600- explosion_image.get_height()//2))
             
             
