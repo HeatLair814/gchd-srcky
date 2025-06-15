@@ -4,14 +4,14 @@ import math
 
 pygame.init()
 
-auto = "lambo"
+auto = "mercedes"
 frame_rate = 74
 handling = 2      
 zrychleni = 1
 max_speed = 200
 frekvence_aut = [600,4000] #frekvence spawnování aut
 #frekvence_objektu = [100,500]
-game_name = "Spaghetti code"
+game_name = "Escape the UAE"
 fps_counter = False
 game_state = "menu"
 
@@ -25,6 +25,7 @@ class Player():
         super().__init__()
         self.image = pygame.image.load(f"img/{auto}.png")
         self.rect = self.image.get_rect()
+        self.mask = pygame.mask.from_surface(self.image)
         self.x = (1920-self.image.get_width())/2
         self.y = 0
         self.angle = 0
@@ -91,6 +92,7 @@ class Car(pygame.sprite.Sprite):
                 self.image = self.original_image
 
             self.rect = pygame.Rect(screen_x - new_width // 2, road_y - new_height, new_width, new_height)
+            self.mask = pygame.mask.from_surface(self.image)
 
         else:
             self.kill()
@@ -233,7 +235,10 @@ def game():
     hud_barva = (20,20,20)
     text_barva = (255,255,255)
     logo_image = pygame.image.load(f"img/{auto}_logo.png")
+    explosion_image = pygame.image.load(random.choice(["img/explosion 1.png","img/explosion 2.png"])).convert_alpha()
+    explosion_sound = pygame.mixer.Sound(f"songs/explosion/{random.randint(1,3)}.mp3")
     honk_text = pygame.font.Font("fonts/SamsungSans-Thin.ttf",30).render("[SHIFT] to honk",True,text_barva)
+    svodidla = False
 
 
     if auto == "aston":
@@ -242,17 +247,22 @@ def game():
         song_name = "Real Gone - Sheryl Crow"
     elif auto == "lambo":
         song_name = "Satisfya - Imran Khan"
+    elif auto == "mercedes":
+        song_name = random.choice(["Erika - German march","HH - Kanye West"])
     else:
         song_name = random.choice(["James Bond Theme - Moby remix","Arab Money - Busta Rhymes","Satisfya - Imran Khan","WZH - kyeeskii","Free Bird - Lynyrd Skynyrd","No Limit - 2 UNLIMITED","7 5 0 - Malik Montana"])
     music = pygame.mixer.music.load(f"songs/{song_name}.mp3")
     music_text = pygame.font.Font("fonts/SamsungSans-Regular.ttf",30).render(f"[R] Now playing: {song_name}",True,(150,150,150))
     honk_sound = pygame.mixer.Sound("songs/honk.mp3")
+    pygame.mixer.music.play()
     honk_channel = None
+    explosion_channel = None
 
     total_distance = 0
     distance = 0     
     road_offset = 0
-    while True:
+    running = True
+    while running:
         elapsed_distance = player.velocity*1/frame_rate*2.5/1000
         total_distance += elapsed_distance
         delta = clock.tick(74)/1000
@@ -264,7 +274,8 @@ def game():
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     pygame.mixer.music.stop()
-                    honk_channel.stop()
+                    if honk_channel and honk_channel.get_busy():
+                        honk_channel.stop()
                     return "menu"
 
             #spawnování
@@ -292,8 +303,9 @@ def game():
             x = road_offset + i/scale
             y = 225*math.sin(x/93400) + 171*math.sin(x/1234) + 543*math.sin(x/2345) - player.y
             
-            if i == car_line and horizontal >= 760:
-                print("crash")
+            if i == car_line and (horizontal >= 1000 - player.image.get_width()/2 or horizontal <= 960 + player.image.get_width()/2-1500):
+                svodidla = True
+                
             
 
             tilt_strength = player.angle * (i / 1080)*900
@@ -308,6 +320,27 @@ def game():
         cars.draw(screen)
 
         screen.blit(player.image, (960-player.image.get_width()/2,600))
+
+
+
+
+        if pygame.sprite.spritecollide(player,cars,False,pygame.sprite.collide_mask) or svodidla:
+            screen.blit(explosion_image,(960-explosion_image.get_width()//2,600- explosion_image.get_height()//2))
+            
+            
+            if explosion_channel is None or not explosion_channel.get_busy():
+                explosion_channel = explosion_sound.play()
+            running = False
+            
+
+
+
+
+
+
+
+
+
 
         #hud
         pygame.draw.rect(screen,hud_barva,(0,880,1920,400),border_radius=200)
@@ -335,7 +368,67 @@ def game():
         pygame.display.update()
         clock.tick(frame_rate)
 
-running = False
+
+
+
+
+
+
+    overlay = True
+    while not running:
+        
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                exit()
+
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    return "menu"
+        pygame.mixer.music.stop()
+        overlay_surface = pygame.Surface((1920,1080), pygame.SRCALPHA)   # per-pixel alpha
+        overlay_surface.fill((0,0,0,160))
+        if overlay:                  # notice the alpha value in the color
+            screen.blit(overlay_surface, (0,0))
+            overlay = False
+        pygame.display.update()
+        clock.tick(frame_rate)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 loading = True
 pygame.display.set_caption(game_name)
 while loading:
@@ -353,7 +446,7 @@ while loading:
         pygame.draw.rect(screen, (0, 0, 0), (100, 900, 1720, 100))
         pygame.draw.rect(screen, (29, 205, 159), (110, 910, loading_bar_width, 80))
         screen.blit(pygame.font.Font("fonts/SamsungSans-Bold.ttf",70).render(game_name,True,(0,0,0)),(115,915))
-        loading_bar_width += 10
+        loading_bar_width += 100
     else:
         pygame.time.wait(1000)
         loading = False
