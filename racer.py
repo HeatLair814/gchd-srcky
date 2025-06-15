@@ -4,16 +4,22 @@ import math
 
 pygame.init()
 
-auto = "mercedes"
+auto = "lambo" #možnosti: lambo, porsche, aston, mcqueen, mercedes(pro +rychlost)
 frame_rate = 74
 handling = 2      
 zrychleni = 1
 max_speed = 200
 frekvence_aut = [600,4000] #frekvence spawnování aut
 #frekvence_objektu = [100,500]
-game_name = "Escape the UAE"
+game_name = "Tour de UAE"
 fps_counter = False
 game_state = "menu"
+MONEY = 0
+VOLUME = 1
+sounds = [pygame.mixer.Sound("songs/honk.mp3")]
+for i in range(1,4):
+    sounds.append(pygame.mixer.Sound(f"songs/explosion/{i}.mp3"))
+
 
 
 SPAWN_OBJECT = SPAWN_CAR = pygame.USEREVENT + 1
@@ -54,6 +60,19 @@ class Player(pygame.sprite.Sprite):
         self.velocity += self.acceleration*delta
         self.x += self.velocity*delta*math.cos(self.angle)
         self.y += self.velocity*math.sin(self.angle)*delta*100
+
+
+
+    def restart(self):
+        self.image = pygame.image.load(f"img/{auto}.png")
+        self.rect = self.image.get_rect()
+        self.mask = pygame.mask.from_surface(self.image)
+        self.x = (1920-self.image.get_width())/2
+        self.y = 0
+        self.angle = 0
+        self.velocity = 0
+        self.acceleration = 0
+        self.rect.topleft = (960 - self.image.get_width() // 2, 600)
 
 class Car(pygame.sprite.Sprite):
     def __init__(self, road_y, lane,rychlost_bileho_auta):
@@ -101,6 +120,7 @@ class Car(pygame.sprite.Sprite):
         self.k += 0.000001*player.velocity
 
 
+
 class Object(pygame.sprite.Sprite):
     pass
                              
@@ -121,10 +141,13 @@ pygame.time.set_timer(SWITCH_LOADING_SCREEN, 4000)
 
 
 def settings():
+    global sounds
     global fps_counter
+    global VOLUME
     back_button = pygame.image.load("img/back.png")
     settings_text = pygame.font.Font("fonts/SamsungSans-Bold.ttf", 100).render("Settings", True, (255,255,255))
-    volume_text = pygame.font.Font("fonts/SamsungSans-Regular.ttf", 50).render("Volume: ", True, (255,255,255))
+    volume_text = pygame.font.Font("fonts/SamsungSans-Regular.ttf", 50).render(f"Volume: {round(VOLUME*100)} %", True, (255,255,255))
+    volume_button = pygame.Rect(780,180,volume_text.get_width()+40, volume_text.get_height()+40)
     fps_text = pygame.font.Font("fonts/SamsungSans-Regular.ttf", 50).render("FPS: ", True, (255,255,255))
     fps_button = pygame.Rect(1000, 400, 50, 50)
     restore_text = pygame.font.Font("fonts/SamsungSans-Regular.ttf", 50).render("Restore purchases", True, (255,255,255))
@@ -134,13 +157,14 @@ def settings():
         mx, my = pygame.mouse.get_pos()
         screen.fill((0,0,0))
         screen.blit(back_button, (50, 25))
-        screen.blit(settings_text, (960 - settings_text.get_width() // 2, 25))
-        screen.blit(volume_text, (960-volume_text.get_width()//2, 200))
-        screen.blit(fps_text, (850, 400))
+        screen.blit(settings_text, (960-settings_text.get_width()//2, 25))
+        pygame.draw.rect(screen, (34, 34, 34), volume_button, border_radius=20)
+        screen.blit(volume_text, (800, 200))
+        screen.blit(fps_text, (800, 400))
         pygame.draw.rect(screen, (34,34,34), fps_button)
         pygame.draw.polygon(screen,(255,255,255),((1000,400),(1050,400),(1050,450),(1000,450)),2)
-        screen.blit(restore_text, (960-restore_text.get_width()//2, 600))
-        screen.blit(secret_text, (960-secret_text.get_width()//2, 800))
+        screen.blit(restore_text, (800, 600))
+        screen.blit(secret_text, (800, 800))
 
         if fps_counter:
             pygame.draw.rect(screen, (29, 205, 159), (1005,405,42,42))
@@ -162,10 +186,20 @@ def settings():
 
                 elif back_button.get_rect(topleft=(50, 25)).collidepoint(event.pos):
                     return "menu"
+                elif volume_button.collidepoint(event.pos):
+                    VOLUME = random.uniform(0, 1)
+                    pygame.mixer.music.set_volume(VOLUME)
+                    for sound in sounds:
+                        sound.set_volume(VOLUME)
+                        print(pygame.mixer.Sound.get_volume(sound))
+                    volume_text = pygame.font.Font("fonts/SamsungSans-Regular.ttf", 50).render(f"Volume: {round(VOLUME*100)} %", True, (255,255,255))
                 
         if back_button.get_rect(topleft=(50, 25)).collidepoint(mx, my):
-            pygame.draw.rect(screen, (34, 34, 34), (40, 15, 70, 70))
+            pygame.draw.rect(screen, (70,70,70), (40, 15, 70, 70),border_radius=20)
             screen.blit(back_button, (50, 25))
+        if volume_button.collidepoint(mx, my):
+            pygame.draw.rect(screen, (70, 70, 70), (volume_button.x - 10, volume_button.y - 10, volume_button.width + 20, volume_button.height + 20), border_radius=30)
+            screen.blit(volume_text, (800, 200))
 
         pygame.display.update()
         clock.tick(frame_rate)
@@ -183,8 +217,8 @@ def menu():
         screen.blit(off_button, (50, 25))
         screen.blit(settings_button,(150,25))
         pygame.draw.rect(screen,(255,255,255),(124,25,2,50))
-        pygame.draw.rect(screen,(34,34,34),drive_button)
-        pygame.draw.rect(screen,(29, 205, 159),(680,870,560,160))
+        pygame.draw.rect(screen,(34,34,34),drive_button,border_radius=40)
+        pygame.draw.rect(screen,(29, 205, 159),(680,870,560,160),border_radius=20)
         screen.blit(drive_button_text, (960 - drive_button_text.get_width() // 2, 950 - drive_button_text.get_height() // 2))
         pygame.draw.polygon(screen,(34,34,34),((60,700),(260,600),(260,800)))
         pygame.draw.polygon(screen,(34,34,34),((1660,600),(1860,700),(1660,800)))
@@ -208,16 +242,16 @@ def menu():
                     return "game"
                 
         if off_button.get_rect(topleft=(50,25)).collidepoint(mx, my):
-            pygame.draw.rect(screen,(70,70,70),(40,15,70,70))
+            pygame.draw.rect(screen,(70,70,70),(40,15,70,70),border_radius=20)
             screen.blit(off_button, (50, 25))
 
         if settings_button.get_rect(topleft=(150,25)).collidepoint(mx, my):
-            pygame.draw.rect(screen,(70,70,70),(140,15,70,70))
+            pygame.draw.rect(screen,(70,70,70),(140,15,70,70),border_radius=20)
             screen.blit(settings_button,(150,25))
 
                 
         if drive_button.collidepoint(mx, my):
-            pygame.draw.rect(screen,(22, 153, 118),(680,870,560,160))
+            pygame.draw.rect(screen,(22, 153, 118),(680,870,560,160),border_radius=20)
             screen.blit(drive_button_text, (960 - drive_button_text.get_width() // 2, 950 - drive_button_text.get_height() // 2))
 
         pygame.display.update()
@@ -225,6 +259,10 @@ def menu():
 
 
 def game():
+    global MONEY
+    global sounds
+    global fps_counter
+    player.restart()
     road_image = pygame.image.load("img/silnice.jpg")
     road_x = (1920 - road_image.get_width())/2
     road_y = 1080-road_image.get_height()
@@ -236,7 +274,7 @@ def game():
     text_barva = (255,255,255)
     logo_image = pygame.image.load(f"img/{auto}_logo.png")
     explosion_image = pygame.image.load(random.choice(["img/explosion 1.png","img/explosion 2.png"])).convert_alpha()
-    explosion_sound = pygame.mixer.Sound(f"songs/explosion/{random.randint(1,3)}.mp3")
+    explosion_sound = sounds[random.randint(1,3)]
     honk_text = pygame.font.Font("fonts/SamsungSans-Thin.ttf",30).render("[SHIFT] to honk",True,text_barva)
     svodidla = False
 
@@ -253,7 +291,7 @@ def game():
         song_name = random.choice(["James Bond Theme - Moby remix","Arab Money - Busta Rhymes","Satisfya - Imran Khan","WZH - kyeeskii","Free Bird - Lynyrd Skynyrd","No Limit - 2 UNLIMITED","7 5 0 - Malik Montana"])
     music = pygame.mixer.music.load(f"songs/{song_name}.mp3")
     music_text = pygame.font.Font("fonts/SamsungSans-Regular.ttf",30).render(f"[R] Now playing: {song_name}",True,(150,150,150))
-    honk_sound = pygame.mixer.Sound("songs/honk.mp3")
+    honk_sound = sounds[0]
     pygame.mixer.music.play()
     honk_channel = None
     explosion_channel = None
@@ -362,6 +400,9 @@ def game():
                 music = pygame.mixer.music.load(f"songs/{song_name}.mp3")
                 music_text = pygame.font.Font("fonts/SamsungSans-Regular.ttf",30).render(f"[R] Now playing: {song_name}",True,(150,150,150))
                 pygame.mixer.music.play()
+        if fps_counter:
+            fps_text = pygame.font.Font("fonts/Square.ttf",70).render(f"FPS: {round(clock.get_fps())}",True,(0,255,0))
+            screen.blit(fps_text,(20,20))
 
         pygame.display.update()
         clock.tick(frame_rate)
@@ -373,6 +414,15 @@ def game():
 
 
     overlay = True
+    island_y = -400
+    buttons_x = -500
+    death_text = pygame.font.Font("fonts/SamsungSans-Bold.ttf",70).render(random.choice(["Took a shortcut to the afterlife.","Turns out brakes ARE important.","Speed: 100%. Control: 0%.","Even Filip's granny drives better!","You're NOT Filip Turek!","Car is broken, just like this code!"]),True,(255,255,255))
+    crashed_text = pygame.font.Font("fonts/SamsungSans-Regular.ttf",50).render(f"Crashed at: {round(player.velocity*2.5)} km/h",True,(255,255,255))
+    total_distance_text = pygame.font.Font("fonts/SamsungSans-Regular.ttf",50).render(f"Total distance: {round(total_distance,2)} km",True,(255,255,255))
+    plus_money_text = pygame.font.SysFont("Segoe UI",70).render(f"+{round(round(total_distance)*10000)} د.إ",True,(255,255,0))
+    menu_button_text = pygame.font.Font("fonts/SamsungSans-Regular.ttf",120).render("Menu",True,(0,0,0))
+    play_again_button_text = pygame.font.Font("fonts/SamsungSans-Regular.ttf",90).render("Play again",True,(0,0,0))
+
     while not running:
         
         for event in pygame.event.get():
@@ -381,14 +431,70 @@ def game():
                 exit()
 
             if event.type == pygame.KEYDOWN:
+                MONEY += round(round(total_distance)*10000)
                 if event.key == pygame.K_ESCAPE:
                     return "menu"
+                if event.key == pygame.K_RETURN:
+                    running = True
+                    cars.empty()
+                    objects.empty()
+                    return "game"
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                if play_again_button.collidepoint(event.pos):
+                    MONEY += round(round(total_distance)*10000)
+                    running = True
+                    cars.empty()
+                    objects.empty()
+                    return "game"
+                if menu_button.collidepoint(event.pos):
+                    MONEY += round(round(total_distance)*10000)
+                    cars.empty()
+                    objects.empty()
+                    return "menu"
+        
+                    
+
         pygame.mixer.music.stop()
         overlay_surface = pygame.Surface((1920,1080), pygame.SRCALPHA)   # per-pixel alpha
         overlay_surface.fill((0,0,0,160))
         if overlay:                  # notice the alpha value in the color
             screen.blit(overlay_surface, (0,0))
             overlay = False
+        
+        pygame.draw.rect(screen,(29, 205, 159),(160,island_y,1600,350),border_radius=200)
+        pygame.draw.rect(screen,(0,0,0),(170,10+island_y,1580,330),border_radius=180)
+        screen.blit(death_text,(960-death_text.get_width()//2,20+island_y))
+        screen.blit(crashed_text,(960-(crashed_text.get_width()+total_distance_text.get_width()+30)//2,120+island_y))
+        screen.blit(total_distance_text,(960-(crashed_text.get_width()+total_distance_text.get_width()+100)//2+crashed_text.get_width()+100,120+island_y))
+        screen.blit(plus_money_text,(960-plus_money_text.get_width()//2,200+island_y))
+        if island_y < 50:
+            island_y += 10
+        
+
+        play_again_button = pygame.Rect(buttons_x,540,500,200)
+        menu_button = pygame.Rect(1420-buttons_x,540,500,200)
+        pygame.draw.rect(screen,(0,0,0),play_again_button,border_radius=100)
+        pygame.draw.rect(screen,(29, 205, 159),(buttons_x+10,550,480,180),border_radius=90)
+        pygame.draw.rect(screen,(0,0,0),menu_button,border_radius=100)
+        pygame.draw.rect(screen,(29, 205, 159),(1430-buttons_x,550,480,180),border_radius=90)
+        screen.blit(play_again_button_text,(buttons_x+250-play_again_button_text.get_width()//2,540+100-play_again_button_text.get_height()//2))
+        screen.blit(menu_button_text,(1420-buttons_x+250-menu_button_text.get_width()//2,540+100-menu_button_text.get_height()//2))
+
+        if buttons_x < 160:
+            buttons_x += 10
+        
+        if play_again_button.collidepoint(pygame.mouse.get_pos()):
+            pygame.draw.rect(screen,(22, 153, 118),(buttons_x+10,550,480,180),border_radius=100)
+            screen.blit(play_again_button_text,(buttons_x+250-play_again_button_text.get_width()//2,540+100-play_again_button_text.get_height()//2))
+        if menu_button.collidepoint(pygame.mouse.get_pos()):
+            pygame.draw.rect(screen,(22, 153, 118),(1430-buttons_x,550,480,180),border_radius=100)
+            screen.blit(menu_button_text,(1420-buttons_x+250-menu_button_text.get_width()//2,540+100-menu_button_text.get_height()//2))
+        
+
+
+
+
+
         pygame.display.update()
         clock.tick(frame_rate)
 
