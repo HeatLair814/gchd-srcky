@@ -25,6 +25,7 @@ class Player(pygame.sprite.Sprite):
         super().__init__()
         self.image = pygame.image.load(f"img/{auto}.png")
         self.rect = self.image.get_rect()
+        self.mask = pygame.mask.from_surface(self.image)
         self.x = (1920-self.image.get_width())/2
         self.y = 0
         self.angle = 0
@@ -323,10 +324,8 @@ def game():
 
 
     
-        if pygame.sprite.spritecollideany(player, cars) or svodidla:
+        if pygame.sprite.spritecollide(player, cars, False, pygame.sprite.collide_mask) or svodidla:
             screen.blit(explosion_image,(960-explosion_image.get_width()//2,600- explosion_image.get_height()//2))
-            
-            
             if explosion_channel is None or not explosion_channel.get_busy():
                 explosion_channel = explosion_sound.play()
             running = False
