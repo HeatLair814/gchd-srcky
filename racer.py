@@ -3,8 +3,9 @@ import random
 import math
 
 pygame.init()
+auta = ["lambo","porsche","aston","mcqueen","mercedes"]
+auto = auta[0] #možnosti: lambo, porsche, aston, mcqueen, mercedes(pro +rychlost)
 
-auto = "lambo" #možnosti: lambo, porsche, aston, mcqueen, mercedes(pro +rychlost)
 frame_rate = 74
 handling = 2      
 zrychleni = 1
@@ -206,10 +207,14 @@ def settings():
 
 
 def menu():
+    global auta
+    global auto
     off_button = pygame.image.load("img/off.png")
     settings_button = pygame.image.load("img/settings.png")
     drive_button_text = pygame.font.Font("fonts/SamsungSans-Regular.ttf", 160).render("DRIVE!", True, (34,34,34))
     drive_button = pygame.Rect(660,850,600,200)
+    left_button = pygame.Rect(40,580,240,240)
+    right_button = pygame.Rect(1640,580,240,240)
     while True:
         mx, my = pygame.mouse.get_pos()
         screen.fill((0,0,0))
@@ -237,9 +242,25 @@ def menu():
                 
                 elif drive_button.collidepoint(event.pos):
                     return "game"
+                elif left_button.collidepoint(event.pos):
+                    auto = auta[auta.index(auto)-1]
+                elif right_button.collidepoint(event.pos):
+                    auto = auta[auta.index(auto)+1]
+
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_RETURN:
                     return "game"
+                elif event.key == pygame.K_LEFT:
+                    auto = auta[auta.index(auto)-1]
+                    pygame.draw.rect(screen,(70,70,70),left_button,border_radius=20)
+                    pygame.draw.polygon(screen,(34,34,34),((60,700),(260,600),(260,800)))
+                elif event.key == pygame.K_RIGHT:
+                    if auta.index(auto)+2 > len(auta):
+                        auto = auta[0]
+                    else:
+                        auto = auta[auta.index(auto)+1]
+                    pygame.draw.rect(screen,(70,70,70),right_button,border_radius=20)
+                    pygame.draw.polygon(screen,(34,34,34),((1660,600),(1860,700),(1660,800)))
                 
         if off_button.get_rect(topleft=(50,25)).collidepoint(mx, my):
             pygame.draw.rect(screen,(70,70,70),(40,15,70,70),border_radius=20)
@@ -253,6 +274,13 @@ def menu():
         if drive_button.collidepoint(mx, my):
             pygame.draw.rect(screen,(22, 153, 118),(680,870,560,160),border_radius=20)
             screen.blit(drive_button_text, (960 - drive_button_text.get_width() // 2, 950 - drive_button_text.get_height() // 2))
+
+        if left_button.collidepoint(mx,my):
+            pygame.draw.rect(screen,(70,70,70),left_button,border_radius=20)
+            pygame.draw.polygon(screen,(34,34,34),((60,700),(260,600),(260,800)))
+        if right_button.collidepoint(mx,my):
+            pygame.draw.rect(screen,(70,70,70),right_button,border_radius=20)
+            pygame.draw.polygon(screen,(34,34,34),((1660,600),(1860,700),(1660,800)))
 
         pygame.display.update()
         clock.tick(frame_rate)
