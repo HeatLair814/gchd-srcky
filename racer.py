@@ -10,13 +10,14 @@ frame_rate = 74
 handling = 2      
 zrychleni = 1
 max_speed = 200
-frekvence_aut = [600,4000] #frekvence spawnování aut
+frekvence_aut = [100,2000] #frekvence spawnování aut
 #frekvence_objektu = [100,500]
-game_name = "Tour de UAE"
+game_name = "Extreme UAE Autobahn simulator"
 fps_counter = False
 game_state = "menu"
 MONEY = 0
 VOLUME = 1
+menu_channel = None
 sounds = [pygame.mixer.Sound("songs/honk.mp3")]
 for i in range(1,4):
     sounds.append(pygame.mixer.Sound(f"songs/explosion/{i}.mp3"))
@@ -151,9 +152,11 @@ def settings():
     volume_button = pygame.Rect(780,180,volume_text.get_width()+40, volume_text.get_height()+40)
     fps_text = pygame.font.Font("fonts/SamsungSans-Regular.ttf", 50).render("FPS: ", True, (255,255,255))
     fps_button = pygame.Rect(1000, 400, 50, 50)
-    restore_text = pygame.font.Font("fonts/SamsungSans-Regular.ttf", 50).render("Restore purchases", True, (255,255,255))
-    secret_text = pygame.font.Font("fonts/SamsungSans-Regular.ttf", 50).render("Secret code", True, (255,255,255))
-    
+    restore_text = pygame.font.Font("fonts/SamsungSans-Regular.ttf", 50).render("Restore purchases (nefunguje)", True, (255,255,255))
+    secret_text = pygame.font.Font("fonts/SamsungSans-Regular.ttf", 50).render("Secret code (nefunguje)", True, (255,255,255))
+    legal_text1 = pygame.font.Font("fonts/SamsungSans-Thin.ttf", 30).render("Veškeré prvky spojené s jakýmikoliv kontroverzními postavami byly zvoleny výhradně ke vzdělávacím účelům.", True, (255,255,255))
+    legal_text2 = pygame.font.Font("fonts/SamsungSans-Thin.ttf", 30).render("NEMUSÍ...,ale můžou...nepřímo navádět k sympatiím či schvalovat jejich činy.", True, (255,255,255))
+
     while True:
         mx, my = pygame.mouse.get_pos()
         screen.fill((0,0,0))
@@ -166,6 +169,8 @@ def settings():
         pygame.draw.polygon(screen,(255,255,255),((1000,400),(1050,400),(1050,450),(1000,450)),2)
         screen.blit(restore_text, (800, 600))
         screen.blit(secret_text, (800, 800))
+        screen.blit(legal_text1,(960-legal_text1.get_width()//2,1000))
+        screen.blit(legal_text2,(960-legal_text2.get_width()//2,1040))
 
         if fps_counter:
             pygame.draw.rect(screen, (29, 205, 159), (1005,405,42,42))
@@ -192,7 +197,6 @@ def settings():
                     pygame.mixer.music.set_volume(VOLUME)
                     for sound in sounds:
                         sound.set_volume(VOLUME)
-                        print(pygame.mixer.Sound.get_volume(sound))
                     volume_text = pygame.font.Font("fonts/SamsungSans-Regular.ttf", 50).render(f"Volume: {round(VOLUME*100)} %", True, (255,255,255))
                 
         if back_button.get_rect(topleft=(50, 25)).collidepoint(mx, my):
@@ -209,22 +213,54 @@ def settings():
 def menu():
     global auta
     global auto
+    global MONEY
+    global menu_channel
+    money_text = pygame.font.SysFont("Segoe UI",50).render(f"{MONEY} د.إ",True,(255,255,0))
+    game_name_text = pygame.font.Font("fonts/SamsungSans-Bold.ttf", 60).render(game_name, True, (29, 205, 159))
     off_button = pygame.image.load("img/off.png")
     settings_button = pygame.image.load("img/settings.png")
     drive_button_text = pygame.font.Font("fonts/SamsungSans-Regular.ttf", 160).render("DRIVE!", True, (34,34,34))
     drive_button = pygame.Rect(660,850,600,200)
     left_button = pygame.Rect(40,580,240,240)
     right_button = pygame.Rect(1640,580,240,240)
+    menu_auto = None
+    menu_channel = pygame.mixer.music.load("songs/Vodopády - Chaozz.mp3")
+    pygame.mixer.music.play(-1)
+    
+    
+    
     while True:
         mx, my = pygame.mouse.get_pos()
+        
         screen.fill((0,0,0))
         pygame.draw.rect(screen, (34, 34, 34), (0, 0, 1920, 100))
         screen.blit(off_button, (50, 25))
         screen.blit(settings_button,(150,25))
+        screen.blit(money_text,(1800-money_text.get_width(),15))
+        screen.blit(game_name_text,(960-game_name_text.get_width()//2,50-game_name_text.get_height()//2))
+        
         pygame.draw.rect(screen,(255,255,255),(124,25,2,50))
         pygame.draw.rect(screen,(34,34,34),drive_button,border_radius=40)
         pygame.draw.rect(screen,(29, 205, 159),(680,870,560,160),border_radius=20)
         screen.blit(drive_button_text, (960 - drive_button_text.get_width() // 2, 950 - drive_button_text.get_height() // 2))
+
+
+
+        if auto == "lambo": menu_auto="Lamborghini Aventador"
+        elif auto=="porsche": menu_auto="Porsche 944"
+        elif auto=="aston": menu_auto="Aston Martin Vantage"
+        elif auto=="mcqueen": menu_auto="Lightning McQueen"
+        elif auto=="mercedes": menu_auto="Mercedes-Benz K770"
+        menu_auto_image = pygame.image.load(f"img/menu_cars/{menu_auto}.png")#.convert_alpha()
+        target_height = menu_auto_image.get_height()*(1000/menu_auto_image.get_width())
+        menu_auto_image = pygame.transform.smoothscale(menu_auto_image,(1000,target_height))
+        menu_auto_text = pygame.font.Font("fonts/SamsungSans-Bold.ttf", 70).render(menu_auto, True, (150,150,150))
+        screen.blit(menu_auto_text,(960-menu_auto_text.get_width()//2,250))
+        
+        screen.blit(menu_auto_image,(960-menu_auto_image.get_width()//2,800-menu_auto_image.get_height()))
+
+        
+
         pygame.draw.polygon(screen,(34,34,34),((60,700),(260,600),(260,800)))
         pygame.draw.polygon(screen,(34,34,34),((1660,600),(1860,700),(1660,800)))
 
@@ -245,7 +281,10 @@ def menu():
                 elif left_button.collidepoint(event.pos):
                     auto = auta[auta.index(auto)-1]
                 elif right_button.collidepoint(event.pos):
-                    auto = auta[auta.index(auto)+1]
+                    if auta.index(auto)+2 > len(auta):
+                        auto = auta[0]
+                    else:
+                        auto = auta[auta.index(auto)+1]
 
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_RETURN:
@@ -287,6 +326,7 @@ def menu():
 
 
 def game():
+    pygame.mixer.music.stop()
     global MONEY
     global sounds
     global fps_counter
@@ -314,7 +354,7 @@ def game():
     elif auto == "lambo":
         song_name = "Satisfya - Imran Khan"
     elif auto == "mercedes":
-        song_name = random.choice(["Erika - German march","HH - Kanye West"])
+        song_name = "Erika - German march"
     else:
         song_name = random.choice(["James Bond Theme - Moby remix","Arab Money - Busta Rhymes","Satisfya - Imran Khan","WZH - kyeeskii","Free Bird - Lynyrd Skynyrd","No Limit - 2 UNLIMITED","7 5 0 - Malik Montana"])
     music = pygame.mixer.music.load(f"songs/{song_name}.mp3")
@@ -447,7 +487,7 @@ def game():
     death_text = pygame.font.Font("fonts/SamsungSans-Bold.ttf",70).render(random.choice(["Took a shortcut to the afterlife.","Turns out brakes ARE important.","Speed: 100%. Control: 0%.","Even Filip's granny drives better!","You're NOT Filip Turek!","Car is broken, just like this code!"]),True,(255,255,255))
     crashed_text = pygame.font.Font("fonts/SamsungSans-Regular.ttf",50).render(f"Crashed at: {round(player.velocity*2.5)} km/h",True,(255,255,255))
     total_distance_text = pygame.font.Font("fonts/SamsungSans-Regular.ttf",50).render(f"Total distance: {round(total_distance,2)} km",True,(255,255,255))
-    plus_money_text = pygame.font.SysFont("Segoe UI",70).render(f"+{round(round(total_distance)*10000)} د.إ",True,(255,255,0))
+    plus_money_text = pygame.font.SysFont("Segoe UI",70).render(f"+{round(round(total_distance,2)*10000)} د.إ",True,(255,255,0))
     menu_button_text = pygame.font.Font("fonts/SamsungSans-Regular.ttf",120).render("Menu",True,(0,0,0))
     play_again_button_text = pygame.font.Font("fonts/SamsungSans-Regular.ttf",90).render("Play again",True,(0,0,0))
 
@@ -459,7 +499,7 @@ def game():
                 exit()
 
             if event.type == pygame.KEYDOWN:
-                MONEY += round(round(total_distance)*10000)
+                MONEY += round(round(total_distance,2)*10000)
                 if event.key == pygame.K_ESCAPE:
                     return "menu"
                 if event.key == pygame.K_RETURN:
@@ -469,13 +509,13 @@ def game():
                     return "game"
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if play_again_button.collidepoint(event.pos):
-                    MONEY += round(round(total_distance)*10000)
+                    MONEY += round(round(total_distance,2)*10000)
                     running = True
                     cars.empty()
                     objects.empty()
                     return "game"
                 if menu_button.collidepoint(event.pos):
-                    MONEY += round(round(total_distance)*10000)
+                    MONEY += round(round(total_distance,2)*10000)
                     cars.empty()
                     objects.empty()
                     return "menu"
@@ -573,12 +613,12 @@ while loading:
 
             if event.type == SWITCH_LOADING_SCREEN:
                 loading_screen = random.randint(1,10)
-                pygame.time.set_timer(SWITCH_LOADING_SCREEN, 4000)
+                pygame.time.set_timer(SWITCH_LOADING_SCREEN, 3000)
 
         pygame.draw.rect(screen, (0, 0, 0), (100, 900, 1720, 100))
         pygame.draw.rect(screen, (29, 205, 159), (110, 910, loading_bar_width, 80))
         screen.blit(pygame.font.Font("fonts/SamsungSans-Bold.ttf",70).render(game_name,True,(0,0,0)),(115,915))
-        loading_bar_width += 100
+        loading_bar_width += 4
     else:
         pygame.time.wait(1000)
         loading = False
@@ -595,5 +635,4 @@ while True:
     elif game_state == "game":
         game_state = game()  
     else:
-        print("Exiting game loop.")
         break
