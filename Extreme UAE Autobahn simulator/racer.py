@@ -354,7 +354,7 @@ def game():
     elif auto == "lambo":
         song_name = "Satisfya - Imran Khan"
     elif auto == "mercedes":
-        song_name = "Erika - German march"
+        song_name = random.choice(["Erika - German march","HH - YE"])
     else:
         song_name = random.choice(["James Bond Theme - Moby remix","Arab Money - Busta Rhymes","Satisfya - Imran Khan","WZH - kyeeskii","Free Bird - Lynyrd Skynyrd","No Limit - 2 UNLIMITED","7 5 0 - Malik Montana"])
     music = pygame.mixer.music.load(f"songs/{song_name}.mp3")
