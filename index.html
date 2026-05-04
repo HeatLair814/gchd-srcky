@@ -302,13 +302,234 @@
   ::-webkit-scrollbar { width: 6px; }
   ::-webkit-scrollbar-track { background: var(--surface); }
   ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  /* ══════════════════════════════════════════════
+     REWARD FACE OVERLAY (player between-questions)
+  ══════════════════════════════════════════════ */
+  #reward-overlay {
+    position: fixed; inset: 0; z-index: 500;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    pointer-events: none; opacity: 0;
+    transition: opacity .3s;
+  }
+  #reward-overlay.show { opacity: 1; }
+
+  .face-wrap {
+    position: relative; width: 180px; height: 180px;
+    animation: faceBounce .5s cubic-bezier(.36,2,.6,.9) both;
+  }
+  @keyframes faceBounce {
+    0%   { transform: scale(0) rotate(-20deg); }
+    60%  { transform: scale(1.15) rotate(6deg); }
+    80%  { transform: scale(.92) rotate(-3deg); }
+    100% { transform: scale(1) rotate(0deg); }
+  }
+  .face-svg { width: 100%; height: 100%; }
+
+  /* Wiggle for correct */
+  .face-correct .face-svg { animation: faceBounce .5s cubic-bezier(.36,2,.6,.9) both, wiggle 1s .5s ease-in-out infinite; }
+  @keyframes wiggle {
+    0%,100% { transform: rotate(0deg); }
+    20%     { transform: rotate(-8deg); }
+    40%     { transform: rotate(8deg); }
+    60%     { transform: rotate(-5deg); }
+    80%     { transform: rotate(5deg); }
+  }
+  /* Shake for wrong */
+  .face-wrong .face-svg { animation: faceBounce .5s cubic-bezier(.36,2,.6,.9) both, headShake 1s .5s ease-in-out infinite; }
+  @keyframes headShake {
+    0%,100% { transform: translateX(0); }
+    15%     { transform: translateX(-12px) rotate(-4deg); }
+    30%     { transform: translateX(10px) rotate(3deg); }
+    45%     { transform: translateX(-8px) rotate(-2deg); }
+    60%     { transform: translateX(8px) rotate(2deg); }
+    75%     { transform: translateX(-5px); }
+  }
+
+  .reward-label {
+    margin-top: 1.2rem; font-family: 'Playfair Display', serif;
+    font-size: 2rem; font-weight: 700; letter-spacing: -1px;
+    animation: labelPop .4s .3s cubic-bezier(.36,2,.6,.9) both;
+  }
+  @keyframes labelPop {
+    from { transform: translateY(20px) scale(.7); opacity: 0; }
+    to   { transform: translateY(0) scale(1); opacity: 1; }
+  }
+  .reward-correct-label { color: var(--green); text-shadow: 0 0 30px rgba(6,214,160,.6); }
+  .reward-wrong-label   { color: var(--rose);  text-shadow: 0 0 30px rgba(247,37,133,.5); }
+
+  .reward-pts {
+    font-family: 'JetBrains Mono', monospace; font-size: 1.1rem; font-weight: 700;
+    color: var(--gold); margin-top: .3rem;
+    animation: labelPop .4s .5s cubic-bezier(.36,2,.6,.9) both;
+  }
+
+  /* Star burst for correct */
+  .stars-burst {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+    width: 0; height: 0; pointer-events: none;
+  }
+  .star-particle {
+    position: absolute; width: 12px; height: 12px; border-radius: 2px;
+    opacity: 0;
+  }
+  .face-correct .star-particle {
+    animation: starFly 1s .3s ease-out forwards;
+  }
+  @keyframes starFly {
+    0%   { transform: translate(0,0) rotate(0deg) scale(1); opacity: 1; }
+    100% { opacity: 0; }
+  }
+
+  /* ══════════════════════════════════════════════
+     FINAL PODIUM SCREEN (top 3 winners)
+  ══════════════════════════════════════════════ */
+  #final-podium {
+    display: none; min-height: 100vh; padding: 0;
+    background: var(--bg);
+    background-image:
+      radial-gradient(ellipse at 30% 20%, rgba(249,199,79,.18) 0%, transparent 55%),
+      radial-gradient(ellipse at 70% 80%, rgba(247,37,133,.12) 0%, transparent 55%),
+      radial-gradient(ellipse at 50% 50%, rgba(76,201,240,.06) 0%, transparent 60%);
+    text-align: center; overflow: hidden;
+  }
+  #final-podium.active { display: block; }
+
+  .fp-title {
+    padding: 2rem 1rem 0;
+    font-family: 'Playfair Display', serif;
+    font-size: 1rem; letter-spacing: 6px; text-transform: uppercase;
+    color: var(--muted); margin-bottom: .3rem;
+    animation: fadeSlideDown .6s ease both;
+  }
+  .fp-headline {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2.2rem, 6vw, 3.5rem); font-weight: 700;
+    color: var(--gold); letter-spacing: -2px; line-height: 1;
+    margin-bottom: 2.5rem;
+    animation: fadeSlideDown .6s .1s ease both;
+  }
+  @keyframes fadeSlideDown {
+    from { transform: translateY(-20px); opacity: 0; }
+    to   { transform: translateY(0); opacity: 1; }
+  }
+
+  /* Three towering columns */
+  .fp-stage {
+    display: flex; align-items: flex-end; justify-content: center;
+    gap: 0; padding: 0 1rem; max-width: 600px; margin: 0 auto;
+    height: 380px;
+  }
+
+  .fp-col {
+    flex: 1; display: flex; flex-direction: column; align-items: center;
+    position: relative; transform: translateY(60px); opacity: 0;
+  }
+  .fp-col.p1 { order: 2; animation: riseUp .7s .3s cubic-bezier(.22,1,.36,1) forwards; }
+  .fp-col.p2 { order: 1; animation: riseUp .7s .5s cubic-bezier(.22,1,.36,1) forwards; }
+  .fp-col.p3 { order: 3; animation: riseUp .7s .7s cubic-bezier(.22,1,.36,1) forwards; }
+  @keyframes riseUp {
+    to { transform: translateY(0); opacity: 1; }
+  }
+
+  /* The face avatar on top of each column */
+  .fp-avatar {
+    width: 68px; height: 68px; margin-bottom: 6px; flex-shrink: 0;
+    animation: none;
+  }
+  .fp-col.p1 .fp-avatar { width: 82px; height: 82px; }
+
+  /* Crown for 1st */
+  .fp-crown {
+    font-size: 2rem; margin-bottom: -4px; display: block;
+    animation: crownSpin 2s 1.2s ease-in-out infinite alternate;
+  }
+  @keyframes crownSpin {
+    0%   { transform: rotate(-12deg) scale(1); }
+    100% { transform: rotate(12deg) scale(1.1); }
+  }
+
+  .fp-player-name {
+    font-family: 'Playfair Display', serif;
+    font-weight: 700; font-size: .9rem;
+    max-width: 100%; padding: 0 4px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    color: var(--text); margin-bottom: 4px;
+  }
+  .fp-col.p1 .fp-player-name { font-size: 1.05rem; }
+
+  .fp-score-chip {
+    font-family: 'JetBrains Mono', monospace; font-size: .78rem; font-weight: 700;
+    border-radius: 20px; padding: .25rem .7rem; margin-bottom: 8px;
+    display: inline-block;
+  }
+  .fp-col.p1 .fp-score-chip { background: rgba(249,199,79,.25); color: var(--gold); border: 1px solid rgba(249,199,79,.5); }
+  .fp-col.p2 .fp-score-chip { background: rgba(176,179,198,.15); color: #b0b3c6; border: 1px solid rgba(176,179,198,.4); }
+  .fp-col.p3 .fp-score-chip { background: rgba(205,127,50,.15);  color: #cd7f32; border: 1px solid rgba(205,127,50,.4); }
+
+  /* The platform block */
+  .fp-platform {
+    width: 100%; border-radius: 12px 12px 0 0;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Playfair Display', serif; font-size: 2rem; font-weight: 700;
+  }
+  .fp-col.p1 .fp-platform { height: 160px; background: linear-gradient(160deg,#f9c74f,#fb8500); color: #0f0e17; }
+  .fp-col.p2 .fp-platform { height: 110px; background: linear-gradient(160deg,#b0b3c6,#7c7f93); color: #0f0e17; }
+  .fp-col.p3 .fp-platform { height:  80px; background: linear-gradient(160deg,#cd7f32,#8a4a15); color: #fff; }
+
+  /* Confetti strip below stage */
+  .fp-confetti-row {
+    display: flex; gap: 6px; justify-content: center; flex-wrap: wrap;
+    padding: .8rem 1rem;
+    animation: fadeIn 1s 1s ease both;
+  }
+  .fp-confetti-dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    animation: confettiFall 1.8s ease-in-out infinite both;
+  }
+  @keyframes confettiFall {
+    0%,100% { transform: translateY(0) scale(1); opacity: .8; }
+    50%     { transform: translateY(8px) scale(.85); opacity: .4; }
+  }
+
+  /* Rest of scoreboard below */
+  .fp-rest {
+    max-width: 440px; margin: 1rem auto 0; padding: 0 1rem 2rem;
+    animation: fadeIn 1s 1.2s ease both;
+  }
+  .fp-rest-title {
+    font-size: .7rem; text-transform: uppercase; letter-spacing: 3px; color: var(--muted);
+    margin-bottom: .8rem;
+  }
+  .fp-rest-item {
+    display: flex; align-items: center; gap: 10px;
+    background: var(--surface); border: 1.5px solid var(--border);
+    border-radius: 10px; padding: .55rem .9rem; margin-bottom: 6px;
+    font-size: .88rem;
+  }
+  .fp-rest-rank { font-family: 'JetBrains Mono',monospace; font-size: .75rem; color: var(--muted); min-width: 24px; }
+  .fp-rest-name { flex: 1; font-weight: 500; text-align: left; }
+  .fp-rest-pts  { font-family: 'JetBrains Mono',monospace; font-size: .8rem; color: var(--teal); font-weight: 700; }
+
+  .fp-btns { padding: 1.5rem 1rem 3rem; animation: fadeIn 1s 1.4s ease both; }
+
+  /* Floating confetti squares */
+  .confetti-piece {
+    position: fixed; top: -20px; width: 10px; height: 10px; border-radius: 2px;
+    opacity: 0; pointer-events: none; z-index: 10;
+    animation: confettiDrop linear forwards;
+  }
+  @keyframes confettiDrop {
+    0%   { transform: translateY(0) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+  }
 </style>
 </head>
 <body>
 <div id="app">
 
 <!-- START -->
-
+<div id="start" class="screen active">
   <h1>VerseQuiz</h1>
   <p class="tagline">Poetic Devices Classroom Challenge</p>
   <div class="mode-toggle">
@@ -416,13 +637,25 @@
   </div>
 </div>
 
-<!-- BETWEEN QUESTIONS (PLAYER) -->
+<!-- BETWEEN QUESTIONS (PLAYER) — goofy face reward -->
 <div id="between-questions" class="screen">
-  <div class="waiting-pulse">
-    <div style="font-size:1.2rem;font-weight:600;color:var(--green)" id="betweenResult">✓ Correct!</div>
-    <p style="color:var(--muted);margin:.5rem 0 1rem">Next question coming up…</p>
+  <div style="text-align:center;padding:2rem 1rem">
+    <div id="goofyFaceWrap" style="margin:0 auto 1rem;width:200px;height:200px"></div>
+    <div id="goofyLabel" style="font-family:'Playfair Display',serif;font-size:1.8rem;font-weight:700;margin-bottom:.4rem"></div>
+    <div id="goofyPts" style="font-family:'JetBrains Mono',monospace;font-size:.95rem;color:var(--gold)"></div>
+    <p style="color:var(--muted);margin:1.2rem 0 1rem;font-size:.9rem">Next question coming up…</p>
     <div class="dot-row"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
   </div>
+</div>
+
+<!-- FINAL PODIUM SCREEN (top 3) -->
+<div id="final-podium">
+  <div class="fp-title">Game Over</div>
+  <div class="fp-headline" id="fpHeadline">🏆 Hall of Fame</div>
+  <div class="fp-stage" id="fpStage"></div>
+  <div class="fp-confetti-row" id="fpConfettiRow"></div>
+  <div class="fp-rest" id="fpRest"></div>
+  <div class="fp-btns" id="fpBtns"></div>
 </div>
 
 <!-- SCOREBOARD -->
@@ -1023,7 +1256,112 @@ function nextQuestion(){
 function endGame(){
   state.phase = 'scoreboard';
   gameRef.update({ phase: 'scoreboard', scores: state.scores });
-  showScoreboard(true);
+  showFinalPodium(true);
+}
+
+/* ── Generate a tiny face SVG for the podium avatars ── */
+function getMiniCorrectFace(size){
+  return `<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}">
+    <circle cx="100" cy="100" r="88" fill="#FFD93D" stroke="#f9a825" stroke-width="4"/>
+    <ellipse cx="55" cy="125" rx="20" ry="12" fill="rgba(255,100,100,0.35)"/>
+    <ellipse cx="145" cy="125" rx="20" ry="12" fill="rgba(255,100,100,0.35)"/>
+    <circle cx="70" cy="82" r="14" fill="white"/><circle cx="72" cy="82" r="6" fill="#333"/>
+    <circle cx="130" cy="82" r="14" fill="white"/><circle cx="132" cy="82" r="6" fill="#333"/>
+    <path d="M 55 128 Q 100 172 145 128" fill="#5c3d11" stroke="#5c3d11" stroke-width="2"/>
+    <path d="M 65 140 Q 100 164 135 140" fill="white"/>
+  </svg>`;
+}
+
+function showFinalPodium(isHost){
+  // Hide all .screen elements
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+
+  const scores = state.scores;
+  const sorted = Object.entries(scores).sort((a,b) => b[1] - a[1]);
+
+  const podiumEl = document.getElementById('final-podium');
+  podiumEl.classList.add('active');
+
+  // Stage: top 3
+  const top3  = sorted.slice(0,3);
+  // Display order: 2nd, 1st, 3rd
+  const colDefs = [
+    { rank: 1, cls: 'p1', rankEmoji: '👑', platformLabel: '1st' },
+    { rank: 2, cls: 'p2', rankEmoji: '🥈', platformLabel: '2nd' },
+    { rank: 3, cls: 'p3', rankEmoji: '🥉', platformLabel: '3rd' },
+  ];
+  // visual order: 2nd on left, 1st in center, 3rd on right
+  const displayOrder = [1, 0, 2]; // indices into top3
+
+  const stage = document.getElementById('fpStage');
+  stage.innerHTML = displayOrder.map(idx => {
+    const def       = colDefs[idx];
+    const entry     = top3[idx];
+    if(!entry) return `<div class="fp-col ${def.cls}">
+      <div class="fp-player-name" style="color:var(--muted)">—</div>
+      <div class="fp-score-chip">0 pts</div>
+      <div class="fp-platform">${def.platformLabel}</div>
+    </div>`;
+    const [name, pts] = entry;
+    const crownHtml = idx === 0 ? `<span class="fp-crown">👑</span>` : '';
+    return `<div class="fp-col ${def.cls}">
+      ${crownHtml}
+      <div class="fp-avatar">${getMiniCorrectFace(idx === 0 ? 82 : 68)}</div>
+      <div class="fp-player-name">${esc(name)}</div>
+      <div class="fp-score-chip">${pts} pts</div>
+      <div class="fp-platform">${def.platformLabel}</div>
+    </div>`;
+  }).join('');
+
+  // Confetti dots
+  const confettiColors = ['#f9c74f','#f72585','#4cc9f0','#06d6a0','#fb8500','#7209b7','#fff'];
+  const confettiRow = document.getElementById('fpConfettiRow');
+  confettiRow.innerHTML = Array.from({length:24}, (_,i) =>
+    `<div class="fp-confetti-dot" style="background:${confettiColors[i%confettiColors.length]};animation-delay:${(i*0.08).toFixed(2)}s;animation-duration:${1.4 + (i%5)*.2}s"></div>`
+  ).join('');
+
+  // Rest of scoreboard (4th+)
+  const rest = document.getElementById('fpRest');
+  const others = sorted.slice(3);
+  if(others.length){
+    rest.innerHTML = `<div class="fp-rest-title">Everyone else</div>` +
+      others.map(([name, pts], i) => `
+        <div class="fp-rest-item">
+          <span class="fp-rest-rank">#${i+4}</span>
+          <span class="fp-rest-name">${esc(name)}</span>
+          <span class="fp-rest-pts">${pts} pts</span>
+        </div>`).join('');
+  } else {
+    rest.innerHTML = '';
+  }
+
+  // Buttons
+  const fpBtns = document.getElementById('fpBtns');
+  fpBtns.innerHTML = isHost
+    ? `<button class="btn btn-gold" onclick="playAgain()">Play again 🔄</button>`
+    : '';
+
+  // Launch floating confetti for host (final screen)
+  if(isHost) launchConfetti();
+}
+
+function launchConfetti(){
+  const colors = ['#f9c74f','#f72585','#4cc9f0','#06d6a0','#fb8500','#7209b7'];
+  for(let i = 0; i < 60; i++){
+    const el = document.createElement('div');
+    el.className = 'confetti-piece';
+    el.style.cssText = `
+      left:${Math.random()*100}vw;
+      background:${colors[Math.floor(Math.random()*colors.length)]};
+      width:${6+Math.random()*10}px;
+      height:${6+Math.random()*10}px;
+      border-radius:${Math.random()>.5 ? '50%' : '2px'};
+      animation-duration:${2 + Math.random()*3}s;
+      animation-delay:${Math.random()*2}s;
+    `;
+    document.body.appendChild(el);
+    el.addEventListener('animationend', () => el.remove());
+  }
 }
 
 function showScoreboard(isHost){
@@ -1063,6 +1401,8 @@ function playAgain(){
   if(lobbyListener){ gameRef.child('players').off('value', lobbyListener); lobbyListener = null; }
   if(gameRef) gameRef.remove(); // Clean up the old room
   gameRef = null;
+  // Hide final podium if shown
+  document.getElementById('final-podium').classList.remove('active');
   state = { ...state, currentQ:0, scores:{}, phase:'lobby', playerAnswered:false, players:[], gameCode:null };
   showScreen('start');
   setMode('host');
@@ -1122,13 +1462,31 @@ function onPlayerStateChange(d){
       playerPhase    = 'question';
       playerCurrentQ = d.currentQ;
       state.playerAnswered = false;
+      // Hide final podium if visible
+      document.getElementById('final-podium').classList.remove('active');
       showPlayerQuestion(d.currentQ);
+    }
+  } else if(d.phase === 'review'){
+    // Only show goofy face if the player already answered (state.playerAnswered)
+    // If they didn't answer in time, show the wrong face
+    if(playerPhase !== 'review'){
+      playerPhase = 'review';
+      if(d.scores) state.scores = d.scores;
+      // Did this player answer correctly?
+      const myAnswer = d.answers && d.answers[state.playerName];
+      const correct  = myAnswer ? myAnswer.correct : false;
+      if(state.playerAnswered || myAnswer){
+        showGoofyFace(correct);
+      } else {
+        // Ran out of time — sad face
+        showGoofyFace(false);
+      }
     }
   } else if(d.phase === 'scoreboard'){
     if(playerPhase !== 'scoreboard'){
       playerPhase = 'scoreboard';
       if(d.scores) state.scores = d.scores;
-      showPlayerScoreboard();
+      showFinalPodium(false);
     }
   }
 }
@@ -1253,10 +1611,100 @@ function recordAnswer(data, isOpen = false, isHL = false){
   }
 
   playerGameRef.update(updates);
+
+  // Show goofy face feedback
+  showGoofyFace(data.correct);
+}
+
+/* ── Goofy Face SVGs ── */
+function getCorrectFaceSVG(){
+  return `<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" class="face-svg">
+    <!-- head -->
+    <circle cx="100" cy="100" r="88" fill="#FFD93D" stroke="#f9a825" stroke-width="4"/>
+    <!-- rosy cheeks -->
+    <ellipse cx="55" cy="125" rx="20" ry="12" fill="rgba(255,100,100,0.35)"/>
+    <ellipse cx="145" cy="125" rx="20" ry="12" fill="rgba(255,100,100,0.35)"/>
+    <!-- eyes — huge star eyes -->
+    <g transform="translate(63,78)">
+      <polygon points="0,-18 4,-6 17,-6 7,2 11,15 0,7 -11,15 -7,2 -17,-6 -4,-6" fill="#fff" stroke="#f9a825" stroke-width="1.5"/>
+      <circle cx="0" cy="0" r="5" fill="#5c3d11"/>
+    </g>
+    <g transform="translate(137,78)">
+      <polygon points="0,-18 4,-6 17,-6 7,2 11,15 0,7 -11,15 -7,2 -17,-6 -4,-6" fill="#fff" stroke="#f9a825" stroke-width="1.5"/>
+      <circle cx="0" cy="0" r="5" fill="#5c3d11"/>
+    </g>
+    <!-- huge goofy grin -->
+    <path d="M 48 130 Q 100 185 152 130" fill="#5c3d11" stroke="#5c3d11" stroke-width="2"/>
+    <path d="M 48 130 Q 100 178 152 130 Q 100 165 48 130Z" fill="#5c3d11"/>
+    <!-- teeth -->
+    <path d="M 68 142 Q 100 168 132 142" fill="white"/>
+    <line x1="100" y1="142" x2="100" y2="162" stroke="#5c3d11" stroke-width="2.5"/>
+    <line x1="84" y1="145" x2="82" y2="163" stroke="#5c3d11" stroke-width="2"/>
+    <line x1="116" y1="145" x2="118" y2="163" stroke="#5c3d11" stroke-width="2"/>
+    <!-- sweat drop of joy -->
+    <ellipse cx="160" cy="62" rx="8" ry="11" fill="rgba(76,201,240,0.7)" transform="rotate(-15,160,62)"/>
+    <ellipse cx="157" cy="57" rx="3" ry="4" fill="rgba(255,255,255,0.6)" transform="rotate(-15,157,57)"/>
+    <!-- stars around -->
+    <text x="22" y="45" font-size="22" fill="#f9c74f" transform="rotate(-25,22,45)">★</text>
+    <text x="158" y="35" font-size="18" fill="#f72585" transform="rotate(20,158,35)">★</text>
+    <text x="170" y="160" font-size="14" fill="#4cc9f0" transform="rotate(10,170,160)">✦</text>
+    <text x="14" y="160" font-size="14" fill="#06d6a0" transform="rotate(-10,14,160)">✦</text>
+  </svg>`;
+}
+
+function getWrongFaceSVG(){
+  return `<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" class="face-svg">
+    <!-- head — slightly squished in anger -->
+    <ellipse cx="100" cy="103" rx="88" ry="84" fill="#FF6B6B" stroke="#c0392b" stroke-width="4"/>
+    <!-- steam puffs -->
+    <ellipse cx="38" cy="44" rx="14" ry="10" fill="rgba(255,255,255,0.55)" transform="rotate(-20,38,44)"/>
+    <ellipse cx="30" cy="32" rx="10" ry="7" fill="rgba(255,255,255,0.4)" transform="rotate(-20,30,32)"/>
+    <ellipse cx="162" cy="44" rx="14" ry="10" fill="rgba(255,255,255,0.55)" transform="rotate(20,162,44)"/>
+    <ellipse cx="170" cy="32" rx="10" ry="7" fill="rgba(255,255,255,0.4)" transform="rotate(20,170,32)"/>
+    <!-- angry unibrow -->
+    <path d="M 48 78 Q 100 58 152 78" fill="none" stroke="#5c0a0a" stroke-width="11" stroke-linecap="round"/>
+    <!-- eyes — X eyes -->
+    <line x1="55" y1="89" x2="77" y2="111" stroke="#5c0a0a" stroke-width="8" stroke-linecap="round"/>
+    <line x1="77" y1="89" x2="55" y2="111" stroke="#5c0a0a" stroke-width="8" stroke-linecap="round"/>
+    <line x1="123" y1="89" x2="145" y2="111" stroke="#5c0a0a" stroke-width="8" stroke-linecap="round"/>
+    <line x1="145" y1="89" x2="123" y2="111" stroke="#5c0a0a" stroke-width="8" stroke-linecap="round"/>
+    <!-- wavy grumpy mouth -->
+    <path d="M 55 148 Q 72 135 89 148 Q 106 161 123 148 Q 140 135 152 148" fill="none" stroke="#5c0a0a" stroke-width="7" stroke-linecap="round"/>
+    <!-- teeth showing in frustration -->
+    <rect x="82" y="148" width="14" height="10" rx="2" fill="white"/>
+    <rect x="100" y="148" width="14" height="10" rx="2" fill="white"/>
+    <!-- vein -->
+    <path d="M 155 70 L 162 60 L 168 68 L 175 56" fill="none" stroke="#8b0000" stroke-width="3.5" stroke-linecap="round"/>
+    <!-- small angry lines -->
+    <line x1="23" y1="95" x2="38" y2="95" stroke="#5c0a0a" stroke-width="5" stroke-linecap="round"/>
+    <line x1="20" y1="108" x2="36" y2="105" stroke="#5c0a0a" stroke-width="4" stroke-linecap="round"/>
+  </svg>`;
+}
+
+function showGoofyFace(correct){
+  const wrap  = document.getElementById('goofyFaceWrap');
+  const label = document.getElementById('goofyLabel');
+  const pts   = document.getElementById('goofyPts');
+
+  // Inject SVG with wiggle/shake class
+  wrap.innerHTML = `<div class="${correct ? 'face-correct' : 'face-wrong'}" style="width:100%;height:100%">${correct ? getCorrectFaceSVG() : getWrongFaceSVG()}</div>`;
+
+  if(correct){
+    label.textContent = 'NAILED IT! 🎉';
+    label.style.color = '#06d6a0';
+    pts.textContent   = '+100 pts — you legend!';
+  } else {
+    label.textContent = 'WRONG! 😤';
+    label.style.color = '#f72585';
+    pts.textContent   = 'Better luck next one…';
+  }
+
+  showScreen('between-questions');
 }
 
 function showPlayerScoreboard(){
-  showScoreboard(false);
+  // Players see final podium too
+  showFinalPodium(false);
 }
 
 // ═══════════════════════════════════════════════════════════
