@@ -1517,6 +1517,7 @@ function showPlayerQuestion(qi){
   } else if(q.type === 'open'){
     document.getElementById('playerOpenWrap').style.display = 'block';
     document.getElementById('openAnswerInput').value = '';
+    document.getElementById('openAnswerInput').disabled = false;
     document.getElementById('openSubmitBtn').disabled = false;
   } else if(q.type === 'highlight'){
     document.getElementById('playerHlWrap').style.display = 'block';
