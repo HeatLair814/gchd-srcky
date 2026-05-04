@@ -296,29 +296,7 @@
   #fb-dot.connected { background: var(--green); }
   #fb-dot.error { background: var(--rose); }
 
-  /* Setup screen */
-  #setup { text-align: center; max-width: 560px; margin: 0 auto; padding-top: 2rem; }
-  #setup h2 { color: var(--gold); font-size: 1.8rem; margin-bottom: .5rem; }
-  #setup p { color: var(--muted); font-size: .9rem; margin-bottom: 1.5rem; line-height: 1.6; }
-  .setup-box {
-    background: var(--surface); border: 1.5px solid var(--border);
-    border-radius: 14px; padding: 1.5rem; text-align: left; margin-bottom: 1.2rem;
-  }
-  .setup-box label { display: block; font-size: .75rem; text-transform: uppercase; letter-spacing: 1.5px; color: var(--muted); margin-bottom: .4rem; margin-top: .8rem; }
-  .setup-box label:first-child { margin-top: 0; }
-  .setup-box input {
-    width: 100%; background: var(--bg); border: 1.5px solid var(--border);
-    color: var(--text); border-radius: 8px; padding: .6rem .9rem;
-    font-size: .9rem; font-family: 'DM Sans', sans-serif; outline: none; transition: border .2s;
-  }
-  .setup-box input:focus { border-color: var(--teal); }
-  .setup-hint {
-    background: rgba(76,201,240,.08); border: 1px solid rgba(76,201,240,.2);
-    border-radius: 10px; padding: .9rem 1rem; font-size: .82rem; color: var(--muted); line-height: 1.7;
-    margin-bottom: 1.2rem;
-  }
-  .setup-hint a { color: var(--teal); }
-  .setup-hint code { background: rgba(255,255,255,.08); border-radius: 4px; padding: 1px 5px; font-size: .8rem; color: var(--text); }
+
 
   /* scrollbar */
   ::-webkit-scrollbar { width: 6px; }
@@ -329,41 +307,8 @@
 <body>
 <div id="app">
 
-<!-- FIREBASE SETUP (shown once, then hidden) -->
-<div id="setup" class="screen active">
-  <h2>Firebase Setup</h2>
-  <p>VerseQuiz uses Firebase Realtime Database so students on different devices can join in real-time. Paste your project's config below — this only needs to be done once per deployment.</p>
-  <div class="setup-hint">
-    <strong style="color:var(--teal)">How to get your Firebase config:</strong><br>
-    1. Go to <a href="https://console.firebase.google.com" target="_blank">console.firebase.google.com</a> → create a project<br>
-    2. Add a <strong>Web app</strong> (&lt;/&gt; icon) → copy the <code>firebaseConfig</code> object<br>
-    3. In <strong>Realtime Database</strong> → create database → set rules to allow read/write during the session<br>
-    4. Paste the values below and click Save
-  </div>
-  <div class="setup-box">
-    <label>API Key</label>
-    <input id="cfg-apiKey" placeholder="AIzaSy...">
-    <label>Auth Domain</label>
-    <input id="cfg-authDomain" placeholder="your-project.firebaseapp.com">
-    <label>Database URL</label>
-    <input id="cfg-databaseURL" placeholder="https://your-project-default-rtdb.firebaseio.com">
-    <label>Project ID</label>
-    <input id="cfg-projectId" placeholder="your-project-id">
-    <label>Storage Bucket</label>
-    <input id="cfg-storageBucket" placeholder="your-project.appspot.com">
-    <label>Messaging Sender ID</label>
-    <input id="cfg-messagingSenderId" placeholder="123456789">
-    <label>App ID</label>
-    <input id="cfg-appId" placeholder="1:123456789:web:abc123">
-  </div>
-  <div class="btn-row">
-    <button class="btn btn-gold" onclick="saveFirebaseConfig()">Save &amp; Connect</button>
-  </div>
-  <p id="setup-error" style="color:var(--rose);margin-top:.8rem;font-size:.85rem;display:none"></p>
-</div>
-
 <!-- START -->
-<div id="start" class="screen">
+
   <h1>VerseQuiz</h1>
   <p class="tagline">Poetic Devices Classroom Challenge</p>
   <div class="mode-toggle">
@@ -746,70 +691,39 @@ const TIMER_OPEN  = 30;
 const TIMER_HL    = 35;
 
 // ═══════════════════════════════════════════════════════════
-//  FIREBASE CONFIG PERSISTENCE  (uses localStorage ONLY for
-//  storing the config credentials, not game state)
+//  FIREBASE CONFIG — hardcoded, works on every device
 // ═══════════════════════════════════════════════════════════
-const CONFIG_KEY = 'vq_firebase_config';
+const FIREBASE_CONFIG = {
+  apiKey:            "AIzaSyDCTIMaudYBNtFDlFBkUW-XqqHVf6PFNWM",
+  authDomain:        "poem-devices.firebaseapp.com",
+  databaseURL:       "https://poem-devices-default-rtdb.firebaseio.com/",
+  projectId:         "poem-devices",
+  storageBucket:     "poem-devices.firebasestorage.app",
+  messagingSenderId: "862777632576",
+  appId:             "1:862777632576:web:e4bc5c0e44726ddef57ca5"
+};
 
-let db = null;       // Firebase database reference
+let db      = null;  // Firebase database reference
 let gameRef = null;  // Reference to current game room
 
-function loadStoredConfig(){
-  try { return JSON.parse(localStorage.getItem(CONFIG_KEY)); }
-  catch(e){ return null; }
-}
-
-function saveFirebaseConfig(){
-  const cfg = {
-    apiKey:            document.getElementById('cfg-apiKey').value.trim(),
-    authDomain:        document.getElementById('cfg-authDomain').value.trim(),
-    databaseURL:       document.getElementById('cfg-databaseURL').value.trim(),
-    projectId:         document.getElementById('cfg-projectId').value.trim(),
-    storageBucket:     document.getElementById('cfg-storageBucket').value.trim(),
-    messagingSenderId: document.getElementById('cfg-messagingSenderId').value.trim(),
-    appId:             document.getElementById('cfg-appId').value.trim()
-  };
-  if(!cfg.apiKey || !cfg.databaseURL){
-    showSetupError('API Key and Database URL are required.');
-    return;
+function initFirebase(){
+  if(firebase.apps.length === 0){
+    firebase.initializeApp(FIREBASE_CONFIG);
   }
-  localStorage.setItem(CONFIG_KEY, JSON.stringify(cfg));
-  initFirebase(cfg);
-}
+  db = firebase.database();
 
-function showSetupError(msg){
-  const el = document.getElementById('setup-error');
-  el.textContent = msg;
-  el.style.display = 'block';
-}
-
-function initFirebase(cfg){
-  try {
-    // Avoid duplicate app initialisation on hot reload
-    if(firebase.apps.length === 0){
-      firebase.initializeApp(cfg);
+  // Connection state indicator
+  db.ref('.info/connected').on('value', snap => {
+    const dot   = document.getElementById('fb-dot');
+    const label = document.getElementById('fb-label');
+    if(snap.val()){
+      dot.className     = 'connected';
+      label.textContent = 'Connected';
+    } else {
+      dot.className     = '';
+      label.textContent = 'Reconnecting…';
     }
-    db = firebase.database();
-
-    // Connection state indicator
-    firebase.database().ref('.info/connected').on('value', snap => {
-      const dot   = document.getElementById('fb-dot');
-      const label = document.getElementById('fb-label');
-      if(snap.val()){
-        dot.className   = 'connected';
-        label.textContent = 'Connected';
-      } else {
-        dot.className   = '';
-        label.textContent = 'Reconnecting…';
-      }
-    });
-
-    showScreen('start');
-    setMode('host');
-  } catch(err){
-    showSetupError('Firebase error: ' + err.message);
-    dot.className = 'error';
-  }
+  });
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -1348,13 +1262,9 @@ function showPlayerScoreboard(){
 // ═══════════════════════════════════════════════════════════
 //  BOOT
 // ═══════════════════════════════════════════════════════════
-(function boot(){
-  const stored = loadStoredConfig();
-  if(stored && stored.apiKey && stored.databaseURL){
-    initFirebase(stored);
-  }
-  // else: setup screen is already shown
-})();
+initFirebase();
+showScreen('start');
+setMode('host');
 </script>
 </body>
 </html>
