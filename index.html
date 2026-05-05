@@ -523,6 +523,44 @@
     0%   { transform: translateY(0) rotate(0deg); opacity: 1; }
     100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
   }
+  /* ── Full Leaderboard ── */
+  .lb-title {
+    font-family: 'Playfair Display', serif; font-size: 1rem; font-weight: 700;
+    color: var(--muted); letter-spacing: 2px; text-transform: uppercase;
+    margin-bottom: 1rem; text-align: center;
+  }
+  .lb-list { display: flex; flex-direction: column; gap: 8px; }
+  .lb-row {
+    display: flex; align-items: center; gap: 10px;
+    background: var(--surface); border: 1.5px solid var(--border);
+    border-radius: 12px; padding: .6rem .9rem;
+    opacity: 0; animation: lbSlideIn .4s ease forwards;
+  }
+  @keyframes lbSlideIn {
+    from { opacity: 0; transform: translateX(-16px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+  .lb-rank {
+    font-size: 1.1rem; min-width: 32px; text-align: center;
+    font-family: 'JetBrains Mono', monospace; color: var(--muted); font-weight: 700;
+  }
+  .lb-name-bar { flex: 1; min-width: 0; }
+  .lb-name {
+    font-weight: 600; font-size: .88rem; margin-bottom: 4px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .lb-bar-track {
+    height: 5px; background: var(--border); border-radius: 99px; overflow: hidden;
+  }
+  .lb-bar-fill {
+    height: 100%; border-radius: 99px;
+    transition: width .8s cubic-bezier(.22,1,.36,1);
+  }
+  .lb-pts {
+    font-family: 'JetBrains Mono', monospace; font-size: 1rem; font-weight: 700;
+    color: var(--text); white-space: nowrap; min-width: 60px; text-align: right;
+  }
+  .lb-pts-label { font-size: .65rem; color: var(--muted); font-weight: 400; }
 </style>
 </head>
 <body>
@@ -920,8 +958,8 @@ const COLORS      = ['a-col','b-col','c-col','d-col'];
 const ICONS       = ['A','B','C','D'];
 const ICON_COLORS = ['a','b','c','d'];
 const TIMER_MC    = 20;
-const TIMER_OPEN  = 20;
-const TIMER_HL    = 20;
+const TIMER_OPEN  = 30;
+const TIMER_HL    = 35;
 
 // ═══════════════════════════════════════════════════════════
 //  FIREBASE CONFIG — hardcoded, works on every device
@@ -1135,9 +1173,8 @@ function runQuestion(){
       if(seg.match(/^\s+$/)){
         html += seg;
       } else {
-        const clean = seg.toLowerCase().replace(/[^a-z']/g,'');
-        const isTarget = q.targetWords.includes(clean);
-        html += `<span class="hl-word${isTarget ? ' target-hl' : ''}">${esc(seg)}</span>`;
+        // No target-hl during the question — reveal only after time's up
+        html += `<span class="hl-word">${esc(seg)}</span>`;
       }
     });
     document.getElementById('hlHostText').innerHTML = html;
@@ -1173,7 +1210,12 @@ function runQuestion(){
     document.getElementById('answeredCount').textContent = answered;
 
     if(q.type === 'open' && data.openAnswers){
-      renderOpenAnswersHost(data.openAnswers, q);
+      // During question: only show how many submitted, not the answers (screen is shared)
+      const count = Object.keys(data.openAnswers).length;
+      const list = document.getElementById('openAnswersList');
+      list.innerHTML = `<div style="color:var(--muted);font-size:.85rem;text-align:center;padding:.5rem">
+        ${count} answer${count !== 1 ? 's' : ''} submitted — revealed after time's up
+      </div>`;
     }
 
     // Auto-advance when everyone answered
@@ -1282,21 +1324,19 @@ function showFinalPodium(isHost){
   const podiumEl = document.getElementById('final-podium');
   podiumEl.classList.add('active');
 
-  // Stage: top 3
-  const top3  = sorted.slice(0,3);
-  // Display order: 2nd, 1st, 3rd
+  // ── Top 3 stage ──
+  const top3 = sorted.slice(0,3);
   const colDefs = [
-    { rank: 1, cls: 'p1', rankEmoji: '👑', platformLabel: '1st' },
-    { rank: 2, cls: 'p2', rankEmoji: '🥈', platformLabel: '2nd' },
-    { rank: 3, cls: 'p3', rankEmoji: '🥉', platformLabel: '3rd' },
+    { cls: 'p1', platformLabel: '1st' },
+    { cls: 'p2', platformLabel: '2nd' },
+    { cls: 'p3', platformLabel: '3rd' },
   ];
-  // visual order: 2nd on left, 1st in center, 3rd on right
-  const displayOrder = [1, 0, 2]; // indices into top3
+  const displayOrder = [1, 0, 2]; // left=2nd, center=1st, right=3rd
 
   const stage = document.getElementById('fpStage');
   stage.innerHTML = displayOrder.map(idx => {
-    const def       = colDefs[idx];
-    const entry     = top3[idx];
+    const def   = colDefs[idx];
+    const entry = top3[idx];
     if(!entry) return `<div class="fp-col ${def.cls}">
       <div class="fp-player-name" style="color:var(--muted)">—</div>
       <div class="fp-score-chip">0 pts</div>
@@ -1313,35 +1353,47 @@ function showFinalPodium(isHost){
     </div>`;
   }).join('');
 
-  // Confetti dots
+  // ── Confetti dots ──
   const confettiColors = ['#f9c74f','#f72585','#4cc9f0','#06d6a0','#fb8500','#7209b7','#fff'];
   const confettiRow = document.getElementById('fpConfettiRow');
   confettiRow.innerHTML = Array.from({length:24}, (_,i) =>
-    `<div class="fp-confetti-dot" style="background:${confettiColors[i%confettiColors.length]};animation-delay:${(i*0.08).toFixed(2)}s;animation-duration:${1.4 + (i%5)*.2}s"></div>`
+    `<div class="fp-confetti-dot" style="background:${confettiColors[i%confettiColors.length]};animation-delay:${(i*0.08).toFixed(2)}s;animation-duration:${1.4+(i%5)*.2}s"></div>`
   ).join('');
 
-  // Rest of scoreboard (4th+)
+  // ── Full leaderboard (all players with points) ──
   const rest = document.getElementById('fpRest');
-  const others = sorted.slice(3);
-  if(others.length){
-    rest.innerHTML = `<div class="fp-rest-title">Everyone else</div>` +
-      others.map(([name, pts], i) => `
-        <div class="fp-rest-item">
-          <span class="fp-rest-rank">#${i+4}</span>
-          <span class="fp-rest-name">${esc(name)}</span>
-          <span class="fp-rest-pts">${pts} pts</span>
-        </div>`).join('');
-  } else {
-    rest.innerHTML = '';
-  }
+  const maxPts = sorted.length ? sorted[0][1] : 1;
 
-  // Buttons
+  const leaderboardRows = sorted.map(([name, pts], i) => {
+    const rank    = i + 1;
+    const isTop3  = rank <= 3;
+    const medals  = ['🥇','🥈','🥉'];
+    const rankStr = isTop3 ? medals[i] : `#${rank}`;
+    const barPct  = maxPts > 0 ? Math.max(4, Math.round((pts / maxPts) * 100)) : 4;
+    const barColor = rank === 1 ? '#f9c74f' : rank === 2 ? '#b0b3c6' : rank === 3 ? '#cd7f32' : '#4cc9f0';
+    return `<div class="lb-row" style="animation-delay:${i * 0.06}s">
+      <span class="lb-rank">${rankStr}</span>
+      <div class="lb-name-bar">
+        <div class="lb-name">${esc(name)}</div>
+        <div class="lb-bar-track">
+          <div class="lb-bar-fill" style="width:${barPct}%;background:${barColor}"></div>
+        </div>
+      </div>
+      <span class="lb-pts">${pts}<span class="lb-pts-label"> pts</span></span>
+    </div>`;
+  }).join('');
+
+  rest.innerHTML = `
+    <div class="lb-title">📋 Full Leaderboard</div>
+    <div class="lb-list">${leaderboardRows || '<div style="color:var(--muted);text-align:center;padding:1rem">No scores recorded</div>'}</div>
+  `;
+
+  // ── Buttons ──
   const fpBtns = document.getElementById('fpBtns');
   fpBtns.innerHTML = isHost
     ? `<button class="btn btn-gold" onclick="playAgain()">Play again 🔄</button>`
     : '';
 
-  // Launch floating confetti for host (final screen)
   if(isHost) launchConfetti();
 }
 
