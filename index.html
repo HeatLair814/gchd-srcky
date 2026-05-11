@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>VerseQuiz — Poetic Devices</title>
+<title>Paidy-hoot — Poetic Devices</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
 <style>
@@ -133,10 +133,10 @@
   }
   .ans-card:hover { border-color: var(--muted); }
   .ans-icon { width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: .85rem; flex-shrink: 0; }
-  .ans-icon.a { background: #e63946; color: #fff; }
-  .ans-icon.b { background: #2196f3; color: #fff; }
-  .ans-icon.c { background: #f9c74f; color: #0f0e17; }
-  .ans-icon.d { background: #06d6a0; color: #0f0e17; }
+  .ans-icon.a { background: #7c3aed; color: #fff; }
+  .ans-icon.b { background: #0891b2; color: #fff; }
+  .ans-icon.c { background: #ea580c; color: #fff; }
+  .ans-icon.d { background: #65a30d; color: #fff; }
   .ans-text { font-size: .92rem; font-weight: 500; }
   .ans-card.correct { border-color: var(--green); background: rgba(6,214,160,.12); }
   .ans-card.wrong { border-color: var(--rose); background: rgba(247,37,133,.1); opacity: .6; }
@@ -198,10 +198,10 @@
   }
   .player-ans-btn:hover { transform: scale(1.03); }
   .player-ans-btn:active { transform: scale(.97); }
-  .player-ans-btn.a-col { background: #e63946; }
-  .player-ans-btn.b-col { background: #2196f3; }
-  .player-ans-btn.c-col { background: #f9c74f; color: #0f0e17; }
-  .player-ans-btn.d-col { background: #06d6a0; color: #0f0e17; }
+  .player-ans-btn.a-col { background: #7c3aed; }
+  .player-ans-btn.b-col { background: #0891b2; }
+  .player-ans-btn.c-col { background: #ea580c; }
+  .player-ans-btn.d-col { background: #65a30d; }
   .player-ans-btn:disabled { opacity: .5; cursor: not-allowed; transform: none; }
 
   /* Open-ended player input */
@@ -568,7 +568,7 @@
 
 <!-- START -->
 <div id="start" class="screen active">
-  <h1>VerseQuiz</h1>
+  <h1>Paidy-hoot</h1>
   <p class="tagline">Poetic Devices Classroom Challenge</p>
   <div class="mode-toggle">
     <button class="mode-btn active" id="modeHost" onclick="setMode('host')">Host a game</button>
@@ -594,7 +594,7 @@
 
 <!-- LOBBY -->
 <div id="lobby" class="screen">
-  <h1 style="color:var(--gold);font-size:2.2rem;margin-bottom:.2rem">VerseQuiz</h1>
+  <h1 style="color:var(--gold);font-size:2.2rem;margin-bottom:.2rem">Paidy-hoot</h1>
   <p style="color:var(--muted);margin-bottom:1.2rem;font-size:.9rem">Poetic Devices Challenge</p>
   <div class="game-code-box">
     <div class="label">Game code</div>
@@ -749,7 +749,14 @@ const QUESTIONS = [
   },
 
   // ── 3 ── OPEN
-  
+  {
+    type: 'open',
+    excerpt: `Lewis Carroll — Jabberwocky\n\n"And, as in uffish thought he stood,\nThe Jabberwock, with eyes of flame,\nCame whiffling through the tulgey wood,\nAnd burbled as it came!"`,
+    question: "What device is 'burbled' an example of — a word that sounds like the action it describes?",
+    acceptedAnswers: ["onomatopoeia"],
+    device: "Onomatopoeia",
+    explanation: "<strong>Onomatopoeia</strong> — 'burbled' imitates a bubbling, gurgling sound. Even Carroll's invented words follow sound-sense logic."
+  },
 
   // ════════════════════════════════
   // WILLIAM WORDSWORTH
@@ -791,7 +798,15 @@ const QUESTIONS = [
   // ════════════════════════════════
 
   // ── 7 ── MC
-
+  {
+    type: 'mc',
+    excerpt: `Poe — The Raven\n\n"Once upon a midnight dreary, while I pondered, weak and weary,\nOver many a quaint and curious volume of forgotten lore."`,
+    question: "The repeated 'w' sound in 'weak and weary' and 'while' is an example of…",
+    answers: ["Assonance", "Rhyme", "Alliteration", "Onomatopoeia"],
+    correct: 2,
+    device: "Alliteration",
+    explanation: "<strong>Alliteration</strong> — the repeated 'w' sound in 'weak and weary' (and 'while') creates a mournful, rhythmic effect that sets the poem's dark mood from the very first line."
+  },
 
   // ── 8 ── HIGHLIGHT
   {
@@ -829,7 +844,15 @@ const QUESTIONS = [
   // ════════════════════════════════
 
   // ── 11 ── MC
-
+  {
+    type: 'mc',
+    excerpt: `Ogden Nash — The Cow\n\n"The cow is of the bovine ilk;\nOne end is moo, the other milk."`,
+    question: "Nash rhymes 'ilk' with 'milk' — two words that end in the same sound. What is this called?",
+    answers: ["Alliteration", "Assonance", "Rhyme", "Onomatopoeia"],
+    correct: 2,
+    device: "Rhyme",
+    explanation: "<strong>Rhyme</strong> — 'ilk' and 'milk' share the same ending sound. Nash's tight rhyming couplets are his trademark, turning simple observations into punchy comic verse."
+  },
 
   // ── 12 ── OPEN
   {
@@ -856,7 +879,15 @@ const QUESTIONS = [
   // ════════════════════════════════
 
   // ── 14 ── MC
-
+  {
+    type: 'mc',
+    excerpt: `"The wind whispered through the trees,\nthe leaves sighed."`,
+    question: "Which device gives human qualities to non-human things?",
+    answers: ["Metaphor", "Simile", "Personification", "Symbolism"],
+    correct: 2,
+    device: "Personification",
+    explanation: "<strong>Personification</strong> attributes human actions or feelings to non-human subjects — the wind 'whispers' and leaves 'sigh'."
+  },
 
   // ── 15 ── OPEN
   {
@@ -910,6 +941,15 @@ const QUESTIONS = [
   },
 
   // ── 20 ── MC
+  {
+    type: 'mc',
+    excerpt: `"'What a beautiful day,' she said,\nstaring at the pouring rain."`,
+    question: "When the stated meaning is the opposite of the intended meaning, it is called…",
+    answers: ["Simile", "Allusion", "Verbal Irony", "Hyperbole"],
+    correct: 2,
+    device: "Verbal Irony",
+    explanation: "<strong>Verbal irony</strong> — calling a rainy day 'beautiful' says the opposite of what is meant. This is also sometimes called sarcasm."
+  }
 
 ];
 
@@ -918,8 +958,8 @@ const COLORS      = ['a-col','b-col','c-col','d-col'];
 const ICONS       = ['A','B','C','D'];
 const ICON_COLORS = ['a','b','c','d'];
 const TIMER_MC    = 20;
-const TIMER_OPEN  = 20;
-const TIMER_HL    = 20;
+const TIMER_OPEN  = 30;
+const TIMER_HL    = 35;
 
 // ═══════════════════════════════════════════════════════════
 //  FIREBASE CONFIG — hardcoded, works on every device
@@ -1719,6 +1759,193 @@ function showPlayerScoreboard(){
   // Players see final podium too
   showFinalPodium(false);
 }
+
+// ═══════════════════════════════════════════════════════════
+//  BACKGROUND MUSIC — silly procedural tune via Web Audio API
+// ═══════════════════════════════════════════════════════════
+let audioCtx   = null;
+let musicNodes = [];
+let musicLoop  = null;
+let musicPlaying = false;
+
+const MELODY = [
+  // note freq (Hz), duration (beats)
+  [523.25, 0.5],[587.33, 0.5],[659.25, 0.5],[698.46, 0.5],
+  [783.99, 1  ],[698.46, 0.5],[659.25, 0.5],
+  [587.33, 0.5],[523.25, 0.5],[493.88, 0.5],[523.25, 0.5],
+  [659.25, 1  ],[0,     0.5],
+  [783.99, 0.5],[880.00, 0.5],[987.77, 0.5],[1046.5, 0.5],
+  [880.00, 1  ],[783.99, 0.5],[698.46, 0.5],
+  [659.25, 0.5],[587.33, 0.5],[523.25, 1  ],[0, 0.5],
+];
+const BASS = [
+  [130.81, 1],[146.83, 1],[164.81, 1],[174.61, 1],
+  [130.81, 1],[146.83, 1],[164.81, 1],[174.61, 1],
+];
+
+function getAudioCtx(){
+  if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return audioCtx;
+}
+
+function playNote(ctx, freq, startTime, dur, type='square', gain=0.08){
+  if(freq === 0) return;
+  const osc  = ctx.createOscillator();
+  const gn   = ctx.createGain();
+  osc.type   = type;
+  osc.frequency.value = freq;
+  gn.gain.setValueAtTime(gain, startTime);
+  gn.gain.exponentialRampToValueAtTime(0.001, startTime + dur * 0.9);
+  osc.connect(gn);
+  gn.connect(ctx.destination);
+  osc.start(startTime);
+  osc.stop(startTime + dur);
+  musicNodes.push(osc, gn);
+}
+
+function scheduleMelody(ctx, startTime, bpm=160){
+  const beat = 60 / bpm;
+  let t = startTime;
+  MELODY.forEach(([freq, dur]) => {
+    playNote(ctx, freq, t, dur * beat, 'square', 0.06);
+    t += dur * beat;
+  });
+  // bass line loops alongside
+  let tb = startTime;
+  BASS.forEach(([freq, dur]) => {
+    playNote(ctx, freq, tb, dur * beat * 2, 'triangle', 0.04);
+    tb += dur * beat * 2;
+  });
+  return t; // when melody ends
+}
+
+function startMusic(){
+  if(musicPlaying) return;
+  musicPlaying = true;
+  const ctx = getAudioCtx();
+  let nextStart = ctx.currentTime;
+  const totalBeats = MELODY.reduce((s,[,d]) => s+d, 0);
+  const beat = 60 / 160;
+  const loopDur = totalBeats * beat;
+
+  function scheduleLoop(){
+    if(!musicPlaying) return;
+    nextStart = scheduleMelody(ctx, nextStart);
+    musicLoop = setTimeout(scheduleLoop, (loopDur - 0.2) * 1000);
+  }
+  scheduleLoop();
+}
+
+function stopMusic(){
+  musicPlaying = false;
+  if(musicLoop) clearTimeout(musicLoop);
+  musicNodes.forEach(n => { try { n.stop && n.stop(); n.disconnect && n.disconnect(); } catch(e){} });
+  musicNodes = [];
+}
+
+// Hook music into host flow
+const _origStartHost = startHost;
+startHost = function(){
+  _origStartHost();
+  // Music starts when lobby opens (user gesture already happened via button click)
+  setTimeout(startMusic, 100);
+};
+
+const _origEndGame = endGame;
+endGame = function(){
+  stopMusic();
+  _origEndGame();
+};
+
+const _origPlayAgain = playAgain;
+playAgain = function(){
+  stopMusic();
+  _origPlayAgain();
+};
+
+// ═══════════════════════════════════════════════════════════
+//  PLAYER PERSISTENT SCORE / RANK HUD
+// ═══════════════════════════════════════════════════════════
+(function(){
+  // Inject HUD element into body
+  const hud = document.createElement('div');
+  hud.id = 'player-hud';
+  hud.innerHTML = `
+    <div id="hud-rank">—</div>
+    <div id="hud-pts">0 <span style="font-size:.65rem;font-weight:400;color:var(--muted)">pts</span></div>
+  `;
+  document.body.appendChild(hud);
+
+  // Style it
+  const style = document.createElement('style');
+  style.textContent = `
+    #player-hud {
+      display: none;
+      position: fixed; top: 0; left: 0; right: 0; z-index: 900;
+      background: rgba(15,14,23,0.92); backdrop-filter: blur(8px);
+      border-bottom: 2px solid var(--border);
+      padding: .45rem 1.2rem;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    #player-hud.hud-hidden { display: none !important; }
+    #hud-rank {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .8rem; font-weight: 700; color: var(--muted);
+      background: var(--surface); border-radius: 6px;
+      padding: .2rem .6rem; border: 1px solid var(--border);
+    }
+    #hud-pts {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.1rem; font-weight: 700; color: var(--gold);
+    }
+    /* push all player screens down so HUD doesn't cover content */
+    body.player-mode .screen,
+    body.player-mode #between-questions,
+    body.player-mode #final-podium {
+      padding-top: 3.8rem;
+    }
+  `;
+  document.head.appendChild(style);
+
+  // Show/hide HUD + add padding based on mode
+  function showHUD(){ hud.classList.remove('hud-hidden'); document.body.classList.add('player-mode'); }
+  function hideHUD(){ hud.classList.add('hud-hidden');   document.body.classList.remove('player-mode'); }
+
+  // Patch joinGame to show HUD after joining
+  const _origJoinGame = joinGame;
+  window.joinGame = function(){
+    _origJoinGame();
+    // Show HUD once player is in (slight delay so state.playerName is set)
+    setTimeout(showHUD, 400);
+  };
+
+  // Patch onPlayerStateChange to update HUD live
+  const _origOnPlayerStateChange = onPlayerStateChange;
+  window.onPlayerStateChange = function(d){
+    _origOnPlayerStateChange(d);
+    if(d.scores && state.playerName){
+      const scores = d.scores;
+      const myPts  = scores[state.playerName] || 0;
+      const sorted = Object.entries(scores).sort((a,b) => b[1]-a[1]);
+      const rank   = sorted.findIndex(([n]) => n === state.playerName) + 1;
+      const total  = sorted.length;
+      document.getElementById('hud-pts').innerHTML =
+        `${myPts} <span style="font-size:.65rem;font-weight:400;color:var(--muted)">pts</span>`;
+      document.getElementById('hud-rank').textContent =
+        rank > 0 ? `#${rank} / ${total}` : '—';
+    }
+  };
+
+  // Hide HUD when not in player mode
+  const _origShowScreen = showScreen;
+  window.showScreen = function(id){
+    _origShowScreen(id);
+    if(state.mode === 'host') hideHUD();
+  };
+
+  // Initially hidden
+  hideHUD();
+})();
 
 // ═══════════════════════════════════════════════════════════
 //  BOOT
